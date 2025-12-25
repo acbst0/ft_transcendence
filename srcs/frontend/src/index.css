@@ -1,0 +1,96 @@
+:root {
+  --border: #222;
+  --text: #111;
+  --muted: #555;
+  --bg: #fff;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* Page wrapper */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 12px;
+}
+
+/* Top "www.site.com" label */
+.domain {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+/* Main bordered frame */
+.frame {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  border: 2px solid var(--border);
+  position: relative;
+  background: #fff;
+}
+
+/* Header bar inside frame */
+.topbar {
+  height: 54px;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.nav {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  font-size: 16px;
+}
+
+.nav a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.nav a:hover {
+  outline: 1px solid var(--border);
+}
+
+/* Body area inside frame */
+.content {
+  height: 560px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.content h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Responsive: keep frame readable */
+@media (max-width: 600px) {
+  .topbar { padding: 0 12px; }
+  .nav { gap: 10px; font-size: 14px; }
+  .brand { font-size: 16px; }
+  .content { height: 520px; }
+}

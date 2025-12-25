@@ -1,0 +1,8 @@
+localhost {
+    reverse_proxy frontend:3000
+}
+
+:443 {
+    tls internal
+    reverse_proxy frontend:3000
+}
