@@ -35,6 +35,16 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+class Message(models.Model):
+    circle = models.ForeignKey(Circle, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, related_name='messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['timestamp']
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)

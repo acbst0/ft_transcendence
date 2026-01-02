@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth.models import User
-from .models import Circle, Task
-from .serializers import CircleSerializer, CircleDetailSerializer, UserSerializer, TaskSerializer
+from .models import Circle, Task, Message
+from .serializers import CircleSerializer, CircleDetailSerializer, UserSerializer, TaskSerializer, MessageSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
@@ -114,3 +114,13 @@ class LoginView(ObtainAuthToken):
             'user_id': user.pk,
             'username': user.username
         })
+
+class MessageViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        circle_id = self.request.query_params.get('circle_id')
+        if not circle_id:
+            return Message.objects.none()
+        return Message.objects.filter(circle_id=circle_id)

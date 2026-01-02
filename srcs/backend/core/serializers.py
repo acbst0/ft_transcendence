@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Circle, UserProfile, Task
+from .models import Circle, UserProfile, Task, Message
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,3 +33,11 @@ class CircleDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Circle
         fields = ['id', 'name', 'description', 'created_at', 'members', 'invite_code']
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = Message
+        fields = ['id', 'content', 'timestamp', 'sender', 'circle']
+
