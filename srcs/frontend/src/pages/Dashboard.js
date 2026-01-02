@@ -134,7 +134,7 @@ const Dashboard = () => {
 
 	// WebSocket Connection
 	useEffect(() => {
-		if (chatOpen && selectedEnv) {
+		if (selectedEnv) {
 			const token = localStorage.getItem('token');
 			if (!token) {
 				alert("Authentication token missing. Please login again.");
@@ -153,12 +153,17 @@ const Dashboard = () => {
 
 			ws.current.onmessage = (event) => {
 				const data = JSON.parse(event.data);
-				setMessages(prev => [...prev, {
-					content: data.message,
-					sender: data.sender,
-					timestamp: new Date().toISOString()
-				}]);
-				scrollToBottom();
+
+				if (data.type === 'task_update') {
+					if (selectedEnv) fetchTasks(selectedEnv.id);
+				} else if (data.type === 'chat_message' || data.message) {
+					setMessages(prev => [...prev, {
+						content: data.message,
+						sender: data.sender,
+						timestamp: new Date().toISOString()
+					}]);
+					scrollToBottom();
+				}
 			};
 
 			ws.current.onclose = () => {
@@ -179,7 +184,7 @@ const Dashboard = () => {
 				}
 			};
 		}
-	}, [chatOpen, selectedEnv]);
+	}, [selectedEnv]);
 
 	useEffect(() => {
 		if (selectedEnv) {
