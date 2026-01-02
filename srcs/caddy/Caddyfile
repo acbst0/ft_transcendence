@@ -1,30 +1,29 @@
 localhost {
-    # Frontend proxy
-    reverse_proxy frontend:3000
-    
-    # API and WebSocket proxy
-    reverse_proxy /api/* backend:8000
-    reverse_proxy /ws/* backend:8000 {
-        @websockets {
-            header Connection *Upgrade*
-            header Upgrade websocket
-        }
-        reverse_proxy @websockets backend:8000
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/* {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
     }
 }
 
 :443 {
     tls internal
-    # Frontend proxy
-    reverse_proxy frontend:3000
-    
-    # API and WebSocket proxy
-    reverse_proxy /api/* backend:8000
-    reverse_proxy /ws/* backend:8000 {
-        @websockets {
-            header Connection *Upgrade*
-            header Upgrade websocket
-        }
-        reverse_proxy @websockets backend:8000
+
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/* {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
     }
 }

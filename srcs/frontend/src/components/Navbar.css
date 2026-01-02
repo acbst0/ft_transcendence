@@ -1,0 +1,77 @@
+.navbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 2rem;
+	position: fixed;
+	top: 20px;
+	left: 20px;
+	right: 20px;
+	border-radius: var(--radius-lg);
+	z-index: 100;
+}
+
+.logo {
+	font-size: 24px;
+	font-weight: 700;
+	background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.5px;
+}
+
+.navbar-right {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+}
+
+.lang-dropdown {
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--text);
+	padding: 8px 12px;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	outline: none;
+	font-size: 14px;
+}
+
+.lang-dropdown option {
+	background: #1e293b;
+	color: var(--text);
+}
+
+.auth-buttons {
+	display: flex;
+	gap: 12px;
+}
+
+.btn-login {
+	color: var(--text);
+	background: transparent;
+	padding: 10px 20px;
+	font-weight: 500;
+	transition: color 0.2s;
+}
+
+.btn-login:hover {
+	color: var(--primary);
+}
+
+.btn-register {
+	background: var(--primary);
+	color: white;
+	padding: 10px 24px;
+	border-radius: var(--radius-sm);
+	font-weight: 600;
+	box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+	transition: all 0.2s;
+}
+
+.btn-register:hover {
+	background: var(--primary-hover);
+	transform: translateY(-1px);
+	box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.5);
+}

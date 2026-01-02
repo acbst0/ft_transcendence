@@ -1,31 +1,43 @@
-import React from 'react';
-import Chat from './components/Chat';
-import './App.css';
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import { LoginModal, RegisterModal } from './components/AuthModals';
+
 
 function App() {
-  return (
-    <main className="page">
-      <div className="domain">www.site.com</div>
+	const [isLoginOpen, setIsLoginOpen] = useState(false);
+	const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
-      <section className="frame" aria-label="Anasayfa Çerçevesi">
-        <header className="topbar">
-          <div className="brand">Site Adı</div>
+	const openLogin = () => {
+		setIsRegisterOpen(false);
+		setIsLoginOpen(true);
+	};
 
-          <nav className="nav" aria-label="Üst Menü">
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-          </nav>
-        </header>
+	const openRegister = () => {
+		setIsLoginOpen(false);
+		setIsRegisterOpen(true);
+	};
 
-        <div className="content">
-          <h1>Site Anasayfası</h1>
-          
-          {/* WebSocket Chat Component */}
-          <Chat roomName="general" />
-        </div>
-      </section>
-    </main>
-  );
+	return (
+		<div className="App">
+			<Navbar
+				onLoginClick={openLogin}
+				onRegisterClick={openRegister}
+			/>
+
+			<Home />
+
+			<LoginModal
+				isOpen={isLoginOpen}
+				onClose={() => setIsLoginOpen(false)}
+			/>
+
+			<RegisterModal
+				isOpen={isRegisterOpen}
+				onClose={() => setIsRegisterOpen(false)}
+			/>
+		</div>
+	);
 }
 
 export default App;
