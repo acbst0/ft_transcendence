@@ -2,18 +2,24 @@
 
 # This Makefile is used to build and run the ft_transcendence project using Docker.
 
-.PHONY: all build up down logs
+.PHONY: all build up down logs clean re
 
 all: build up
 
 build:
-	docker-compose up --build -d
+	cd srcs && docker compose up --build -d
 
 up:
-	docker-compose up -d
+	cd srcs && docker compose up -d
 
 down:
-	docker-compose down
+	cd srcs && docker compose down
 
 logs:
-	docker-compose logs -f
+	cd srcs && docker compose logs -f
+
+clean:
+	cd srcs && docker compose down -v
+	docker system prune -af
+
+re: clean all

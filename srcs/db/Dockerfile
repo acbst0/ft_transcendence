@@ -1,0 +1,7 @@
+FROM postgres:15-alpine
+
+ENV POSTGRES_DB=transcendence
+ENV POSTGRES_USER=admin
+ENV POSTGRES_PASSWORD=admin123
+
+EXPOSE 5432
