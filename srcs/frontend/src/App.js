@@ -1,42 +1,52 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
 import { LoginModal, RegisterModal } from './components/AuthModals';
 
 
-function App() {
+function MainLayout() {
 	const [isLoginOpen, setIsLoginOpen] = useState(false);
 	const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+	const navigate = useNavigate();
 
-	const openLogin = () => {
-		setIsRegisterOpen(false);
-		setIsLoginOpen(true);
-	};
-
-	const openRegister = () => {
+	const handleLoginSuccess = () => {
 		setIsLoginOpen(false);
-		setIsRegisterOpen(true);
+		navigate('/dashboard');
 	};
 
 	return (
-		<div className="App">
+		<>
 			<Navbar
-				onLoginClick={openLogin}
-				onRegisterClick={openRegister}
+				onLoginClick={() => setIsLoginOpen(true)}
+				onRegisterClick={() => setIsRegisterOpen(true)}
 			/>
-
 			<Home />
 
 			<LoginModal
 				isOpen={isLoginOpen}
 				onClose={() => setIsLoginOpen(false)}
+				onSuccess={handleLoginSuccess}
 			/>
-
 			<RegisterModal
 				isOpen={isRegisterOpen}
 				onClose={() => setIsRegisterOpen(false)}
 			/>
-		</div>
+		</>
+	);
+}
+
+function App() {
+	return (
+		<Router>
+			<div className="App">
+				<Routes>
+					<Route path="/" element={<MainLayout />} />
+					<Route path="/dashboard" element={<Dashboard />} />
+				</Routes>
+			</div>
+		</Router>
 	);
 }
 
