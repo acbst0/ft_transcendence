@@ -11,6 +11,8 @@ DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='*').split(',')
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +50,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'transcendence.wsgi.application'
+ASGI_APPLICATION = 'transcendence.asgi.application'
 
 DATABASES = {
     'default': {
@@ -96,3 +99,16 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Channels Configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(config('REDIS_HOST', default='redis'), int(config('REDIS_PORT', default='6379')))],
+            'password': config('REDIS_PASSWORD', default='redis123'),
+            'db': 0,
+        },
+    },
+}
+

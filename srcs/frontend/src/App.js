@@ -1,4 +1,6 @@
 import React from 'react';
+import Chat from './components/Chat';
+import './App.css';
 
 function App() {
   return (
@@ -17,6 +19,9 @@ function App() {
 
         <div className="content">
           <h1>Site Anasayfası</h1>
+          
+          {/* WebSocket Chat Component */}
+          <Chat roomName="general" />
         </div>
       </section>
     </main>
@@ -24,3 +29,4 @@ function App() {
 }
 
 export default App;
+
