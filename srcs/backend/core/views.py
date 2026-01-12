@@ -5,8 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth.models import User
-from .models import Circle, Task, Message, ChecklistItem
-from .serializers import CircleSerializer, CircleDetailSerializer, UserSerializer, TaskSerializer, MessageSerializer
+from django.db.models import Q
+from .models import Circle, Task, Message, ChecklistItem, DirectMessage
+from .serializers import CircleSerializer, CircleDetailSerializer, UserSerializer, TaskSerializer, MessageSerializer, DirectMessageSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
@@ -20,7 +21,7 @@ class CircleViewSet(viewsets.ModelViewSet):
         return CircleSerializer
 
     def perform_create(self, serializer):
-        circle = serializer.save()
+        circle = serializer.save(admin=self.request.user)
         circle.members.add(self.request.user)
 
     def get_queryset(self):
@@ -51,6 +52,24 @@ class CircleViewSet(viewsets.ModelViewSet):
         circle = self.get_object()
         circle.members.remove(request.user)
         return Response({'status': 'left circle'})
+        
+    @action(detail=True, methods=['post'])
+    def kick_member(self, request, pk=None):
+        circle = self.get_object()
+        member_id = request.data.get('member_id')
+        
+        if circle.admin != request.user:
+             return Response({'error': 'Only admin can kick members'}, status=status.HTTP_403_FORBIDDEN)
+             
+        try:
+            member = User.objects.get(id=member_id)
+            if member == circle.admin:
+                return Response({'error': 'Cannot kick admin'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            circle.members.remove(member)
+            return Response({'status': 'member kicked'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
     @action(detail=False, methods=['get'])
     def my_circles(self, request):
@@ -191,6 +210,21 @@ class MessageViewSet(viewsets.ReadOnlyModelViewSet):
             return Message.objects.none()
         return Message.objects.filter(circle_id=circle_id)
 
+class DirectMessageViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = DirectMessageSerializer
+
+    def get_queryset(self):
+        target_id = self.request.query_params.get('target_id')
+        if not target_id:
+            return DirectMessage.objects.none()
+        
+        user = self.request.user
+        return DirectMessage.objects.filter(
+            (Q(sender=user) & Q(receiver_id=target_id)) |
+            (Q(sender_id=target_id) & Q(receiver=user))
+        )
+
 from .models import UserProfile
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -216,7 +250,12 @@ class ProfileView(viewsets.ViewSet):
             user.save()
             
             # Update Profile Avatar
-            if 'avatar' in request.FILES:
+            if 'remove_avatar' in request.data and request.data['remove_avatar'] == 'true':
+                 profile, created = UserProfile.objects.get_or_create(user=user)
+                 profile.avatar.delete(save=False)
+                 profile.avatar = None
+                 profile.save()
+            elif 'avatar' in request.FILES:
                 profile, created = UserProfile.objects.get_or_create(user=user)
                 profile.avatar = request.FILES['avatar']
                 profile.save()

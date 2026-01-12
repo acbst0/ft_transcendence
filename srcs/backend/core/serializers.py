@@ -1,21 +1,30 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Circle, UserProfile, Task, Message, ChecklistItem
+from .models import Circle, UserProfile, Task, Message, ChecklistItem, DirectMessage
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
+    is_online = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar']
+        fields = ['id', 'username', 'email', 'avatar', 'is_online']
 
     def get_avatar(self, obj):
         try:
-            if hasattr(obj, 'userprofile') and obj.userprofile.avatar:
-                return obj.userprofile.avatar.url
+            if hasattr(obj, 'profile') and obj.profile.avatar:
+                return obj.profile.avatar.url
         except:
             pass
         return None
+
+    def get_is_online(self, obj):
+        try:
+            if hasattr(obj, 'profile'):
+                return obj.profile.is_online
+        except:
+            pass
+        return False
 
 class ChecklistItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,24 +51,35 @@ class TaskSerializer(serializers.ModelSerializer):
             ChecklistItem.objects.create(task=task, **item_data)
         return task
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        items = representation.get('checklist_items', [])
+        if items:
+            # Sort by is_checked (False < True) and then by id
+            sorted_items = sorted(items, key=lambda x: (x['is_checked'], x['id']))
+            representation['checklist_items'] = sorted_items
+        return representation
+
 class CircleSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     members = UserSerializer(many=True, read_only=True)
+    admin = UserSerializer(read_only=True)
     
     class Meta:
         model = Circle
-        fields = ['id', 'name', 'description', 'created_at', 'member_count', 'invite_code', 'members']
-        read_only_fields = ['invite_code']
+        fields = ['id', 'name', 'description', 'created_at', 'member_count', 'invite_code', 'members', 'admin']
+        read_only_fields = ['invite_code', 'admin']
         
     def get_member_count(self, obj):
         return obj.members.count()
 
 class CircleDetailSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
+    admin = UserSerializer(read_only=True)
     
     class Meta:
         model = Circle
-        fields = ['id', 'name', 'description', 'created_at', 'members', 'invite_code']
+        fields = ['id', 'name', 'description', 'created_at', 'members', 'invite_code', 'admin']
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
@@ -68,3 +88,11 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'content', 'timestamp', 'sender', 'circle']
 
+
+class DirectMessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
+
+    class Meta:
+        model = DirectMessage
+        fields = ['id', 'content', 'timestamp', 'sender', 'receiver', 'is_read']

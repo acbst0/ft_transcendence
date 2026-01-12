@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreateCircleModal, CreateTaskModal, InviteModal, JoinCircleModal, TaskDetailModal } from '../components/DashboardModals';
+import { CreateCircleModal, CreateTaskModal, InviteModal, JoinCircleModal, TaskDetailModal, MembersModal } from '../components/DashboardModals';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -20,8 +20,11 @@ const Dashboard = () => {
 	// Detail Modal State
 	const [selectedTask, setSelectedTask] = useState(null);
 	const [showTaskDetail, setShowTaskDetail] = useState(false);
+	const [preselectedAssignee, setPreselectedAssignee] = useState('');
 
 	// Chat States
+	const [activeChatMode, setActiveChatMode] = useState('circle'); // 'circle' or 'dm'
+	const [dmTarget, setDmTarget] = useState(null); // User object we are chatting with
 	const [messages, setMessages] = useState([]);
 	const [chatInput, setChatInput] = useState('');
 	const [isConnected, setIsConnected] = useState(false);
@@ -42,6 +45,66 @@ const Dashboard = () => {
 	const [showCreateTask, setShowCreateTask] = useState(false);
 	const [showInvite, setShowInvite] = useState(false);
 	const [showJoin, setShowJoin] = useState(false);
+	const [showMembers, setShowMembers] = useState(false);
+
+	const handleKick = async (circleId, memberId) => {
+		const token = localStorage.getItem('token');
+		try {
+			const res = await fetch(`/api/circles/${circleId}/kick_member/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Token ${token}`
+				},
+				body: JSON.stringify({ member_id: memberId })
+			});
+
+			if (res.ok) {
+				alert("Member kicked successfully");
+				// Refresh circle data
+				fetchCircles(); // This updates myCircles which updates selectedEnv eventually
+				// But we need to update selectedEnv explicitly if it doesn't auto-update
+				// Actually fetchCircles updates myCircles, but selectedEnv is a separate object reference.
+				// We should probably re-fetch the specific circle or update local state.
+				const updatedCircle = { ...selectedEnv };
+				updatedCircle.members = updatedCircle.members.filter(m => m.id !== memberId);
+				setSelectedEnv(updatedCircle);
+
+				// Also update the list in myCircles
+				setMyCircles(prev => prev.map(c => c.id === circleId ? updatedCircle : c));
+			} else {
+				const err = await res.json();
+				alert('Error kicking member: ' + (JSON.stringify(err.error) || res.statusText));
+			}
+		} catch (e) { console.error(e); alert('Network error'); }
+	};
+
+	const handleLeaveCircle = async (circleId) => {
+		if (!window.confirm("Are you sure you want to leave this circle?")) return;
+
+		const token = localStorage.getItem('token');
+		try {
+			const res = await fetch(`/api/circles/${circleId}/leave/`, {
+				method: 'POST',
+				headers: { 'Authorization': `Token ${token}` }
+			});
+
+			if (res.ok) {
+				alert("You have left the circle.");
+				// Remove from myCircles
+				const updatedCircles = myCircles.filter(c => c.id !== circleId);
+				setMyCircles(updatedCircles);
+				// Update selectedEnv
+				if (updatedCircles.length > 0) setSelectedEnv(updatedCircles[0]);
+				else setSelectedEnv(null);
+				setShowMembers(false);
+			} else {
+				alert("Failed to leave circle.");
+			}
+		} catch (e) { console.error(e); }
+	};
+
+	const [onlineUsers, setOnlineUsers] = useState(new Set());
 
 	// Initial Data Fetch
 	useEffect(() => {
@@ -76,6 +139,44 @@ const Dashboard = () => {
 
 		fetchUserData();
 		fetchCircles();
+
+		// Connect to Presence WebSocket
+		const token = localStorage.getItem('token');
+		if (token) {
+			const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+			const wsUrl = `${wsScheme}://${window.location.host}/ws/online/?token=${token}`;
+			console.log("Connecting to Presence WS:", wsUrl);
+			const presenceWs = new WebSocket(wsUrl);
+
+			presenceWs.onopen = () => {
+				console.log("Presence WS Connected");
+			};
+
+			presenceWs.onerror = (e) => {
+				console.error("Presence WS Error:", e);
+			};
+
+			presenceWs.onclose = (e) => {
+				console.log("Presence WS Closed:", e.code, e.reason);
+			};
+
+			presenceWs.onmessage = (e) => {
+				const data = JSON.parse(e.data);
+				if (data.type === 'initial_state') {
+					setOnlineUsers(new Set(data.online_users.map(id => Number(id))));
+				} else if (data.type === 'user_status') {
+					setOnlineUsers(prev => {
+						const newSet = new Set(prev);
+						const uid = Number(data.user_id);
+						if (data.status === 'online') newSet.add(uid);
+						else newSet.delete(uid);
+						return newSet;
+					});
+				}
+			};
+
+			return () => presenceWs.close();
+		}
 	}, []);
 
 	const fetchCircles = async () => {
@@ -128,13 +229,28 @@ const Dashboard = () => {
 		} catch (e) { console.error(e); }
 	};
 
+	const fetchDMMessages = async (targetId) => {
+		const token = localStorage.getItem('token');
+		if (!token) return;
+		try {
+			const res = await fetch(`/api/direct-messages/?target_id=${targetId}`, {
+				headers: { 'Authorization': `Token ${token}` }
+			});
+			if (res.ok) {
+				const data = await res.json();
+				setMessages(data);
+				scrollToBottom();
+			}
+		} catch (e) { console.error(e); }
+	};
+
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
 
 	// WebSocket Connection
 	useEffect(() => {
-		if (selectedEnv) {
+		if ((activeChatMode === 'circle' && selectedEnv) || (activeChatMode === 'dm' && dmTarget)) {
 			const token = localStorage.getItem('token');
 			if (!token) {
 				alert("Authentication token missing. Please login again.");
@@ -142,8 +258,16 @@ const Dashboard = () => {
 			}
 			if (ws.current) ws.current.close();
 
+			setMessages([]); // Clear messages on switch
+
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const wsUrl = `${protocol}//${window.location.host}/ws/chat/${selectedEnv.id}/?token=${token}`;
+			let wsUrl = '';
+
+			if (activeChatMode === 'circle') {
+				wsUrl = `${protocol}//${window.location.host}/ws/chat/${selectedEnv.id}/?token=${token}`;
+			} else {
+				wsUrl = `${protocol}//${window.location.host}/ws/chat/dm/${dmTarget.id}/?token=${token}`;
+			}
 
 			ws.current = new WebSocket(wsUrl);
 
@@ -174,7 +298,12 @@ const Dashboard = () => {
 				console.error("WS Error", e);
 			};
 
-			fetchMessages(selectedEnv.id);
+			// Initial fetch based on mode
+			if (activeChatMode === 'circle') {
+				fetchMessages(selectedEnv.id);
+			} else {
+				fetchDMMessages(dmTarget.id);
+			}
 
 			return () => {
 				if (ws.current) {
@@ -184,7 +313,7 @@ const Dashboard = () => {
 				}
 			};
 		}
-	}, [selectedEnv]);
+	}, [selectedEnv, activeChatMode, dmTarget]);
 
 	useEffect(() => {
 		if (selectedEnv) {
@@ -200,9 +329,23 @@ const Dashboard = () => {
 		if (!chatInput.trim() || !isConnected || !ws.current) return;
 		ws.current.send(JSON.stringify({
 			message: chatInput,
-			sender_id: user.id
+			sender_id: user.id,
+			target_id: activeChatMode === 'dm' ? dmTarget.id : undefined
 		}));
 		setChatInput('');
+	};
+
+	const startDM = (targetUser) => {
+		if (targetUser.id === user.id) return; // Can't chat with self
+		setDmTarget(targetUser);
+		setActiveChatMode('dm');
+		setChatOpen(true);
+		setSettingsOpen(false);
+	};
+
+	const returnToTeamChat = () => {
+		setActiveChatMode('circle');
+		setDmTarget(null);
 	};
 
 	const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -223,6 +366,7 @@ const Dashboard = () => {
 		formData.append('email', profileData.email);
 		if (profileData.password) formData.append('password', profileData.password);
 		if (profileData.avatar) formData.append('avatar', profileData.avatar);
+		if (profileData.removeAvatar) formData.append('remove_avatar', 'true');
 
 		try {
 			const res = await fetch('/api/profile/me/', {
@@ -275,6 +419,12 @@ const Dashboard = () => {
 		} catch (e) { console.error(e); }
 	};
 
+	const handleLogout = () => {
+		localStorage.removeItem('token');
+		localStorage.removeItem('user');
+		window.location.href = '/';
+	};
+
 	// Close one sidebar if other opens
 	const openChat = () => { setSettingsOpen(false); setChatOpen(true); };
 	const openSettings = () => { setChatOpen(false); setSettingsOpen(true); };
@@ -304,6 +454,10 @@ const Dashboard = () => {
 						<div className="nav-item active" onClick={() => { setChatOpen(false); setSettingsOpen(false); }}>
 							<div className="icon">🏠</div>
 							<div className="label">Dashboard</div>
+						</div>
+						<div className="nav-item" onClick={() => setShowMembers(true)}>
+							<div className="icon">👥</div>
+							<div className="label">Members</div>
 						</div>
 						<div className={`nav-item ${chatOpen ? 'active' : ''}`} onClick={() => chatOpen ? setChatOpen(false) : openChat()}>
 							<div className="icon">💬</div>
@@ -366,8 +520,10 @@ const Dashboard = () => {
 												style={{
 													marginLeft: i > 0 ? '-12px' : '0',
 													zIndex: 10 - i,
-													background: member.avatar ? 'transparent' : color
-												}}>
+													background: member.avatar ? 'transparent' : color,
+													cursor: member.id !== user.id ? 'pointer' : 'default'
+												}}
+												onClick={() => startDM(member)}>
 												{member.avatar ?
 													<img src={member.avatar} alt={member.username} /> :
 													member.username.charAt(0).toUpperCase()
@@ -382,7 +538,7 @@ const Dashboard = () => {
 							)}
 
 							{selectedEnv && (
-								<div className="dots" title="Invite Members">
+								<div className="dots" title="Invite Members" style={{ display: 'flex', gap: '8px' }}>
 									<div className="dot plus" onClick={() => setShowInvite(true)}>+</div>
 								</div>
 							)}
@@ -409,7 +565,7 @@ const Dashboard = () => {
 										<h2 style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>Tasks</h2>
 										<p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>{selectedEnv.description}</p>
 									</div>
-									<button className="primary-btn" type="button" style={{ padding: '12px 24px', fontSize: '15px' }} onClick={() => setShowCreateTask(true)}>
+									<button className="primary-btn" type="button" style={{ padding: '12px 24px', fontSize: '15px' }} onClick={() => { setPreselectedAssignee(''); setShowCreateTask(true); }}>
 										+ New Item
 									</button>
 								</div>
@@ -477,6 +633,16 @@ const Dashboard = () => {
 								<input id="avatar-upload" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
 							</label>
 						</div>
+						{profileData.avatarUrl && (
+							<button
+								type="button"
+								onClick={() => {
+									setProfileData({ ...profileData, avatar: null, avatarUrl: '', removeAvatar: true });
+								}}
+								style={{ background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer', alignSelf: 'center', marginTop: '10px' }}>
+								Remove Avatar
+							</button>
+						)}
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 							<label style={{ fontSize: '13px', color: '#94a3b8' }}>Username</label>
 							<input className="glass-input" type="text" value={profileData.username} onChange={e => setProfileData({ ...profileData, username: e.target.value })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 12px', color: '#fff', outline: 'none' }} />
@@ -490,6 +656,21 @@ const Dashboard = () => {
 							<input className="glass-input" type="password" value={profileData.password} onChange={e => setProfileData({ ...profileData, password: e.target.value })} placeholder="Leave blank to keep current" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 12px', color: '#fff', outline: 'none' }} />
 						</div>
 						<button type="submit" className="primary-btn" style={{ justifyContent: 'center', marginTop: '12px' }}>Save Changes</button>
+
+						<div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '20px', paddingTop: '20px' }}>
+							<button
+								type="button"
+								onClick={handleLogout}
+								style={{
+									width: '100%', padding: '12px', background: 'rgba(239, 68, 68, 0.1)',
+									color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)',
+									borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
+									display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+								}}
+							>
+								🚪 Logout
+							</button>
+						</div>
 					</form>
 				</div>
 
@@ -497,8 +678,15 @@ const Dashboard = () => {
 				<div className={`chat-sidebar ${chatOpen ? 'open' : ''}`}>
 					<div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<span style={{ fontSize: '18px' }}>💬</span>
-							<h2 style={{ fontSize: '16px', fontWeight: 600, color: '#fff' }}>Team Chat</h2>
+							{activeChatMode === 'dm' && (
+								<button onClick={returnToTeamChat} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', marginRight: '4px' }}>
+									←
+								</button>
+							)}
+							<span style={{ fontSize: '18px' }}>{activeChatMode === 'dm' ? '👤' : '💬'}</span>
+							<h2 style={{ fontSize: '16px', fontWeight: 600, color: '#fff' }}>
+								{activeChatMode === 'dm' ? (dmTarget ? dmTarget.username : 'Chat') : 'Team Chat'}
+							</h2>
 						</div>
 						<button onClick={() => setChatOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '20px' }}>&times;</button>
 					</div>
@@ -520,7 +708,9 @@ const Dashboard = () => {
 									</div>
 								</div>
 							);
-						}) : <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Select a circle to chat</div>}
+						}) : <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+							{activeChatMode === 'dm' ? 'Start a conversation' : 'Select a circle to chat'}
+						</div>}
 						<div ref={messagesEndRef} />
 					</div>
 
@@ -554,6 +744,7 @@ const Dashboard = () => {
 				circleId={selectedEnv?.id}
 				members={selectedEnv?.members}
 				onSuccess={() => fetchTasks(selectedEnv.id)}
+				initialAssignee={preselectedAssignee}
 			/>
 			<TaskDetailModal
 				isOpen={showTaskDetail}
@@ -562,6 +753,26 @@ const Dashboard = () => {
 				user={user}
 				onUpdate={() => fetchTasks(selectedEnv.id)}
 				onDelete={deleteTask}
+			/>
+			<MembersModal
+				isOpen={showMembers}
+				onClose={() => setShowMembers(false)}
+				members={selectedEnv?.members || []}
+				currentUserId={user.id}
+				adminId={selectedEnv?.admin?.id}
+				onKick={handleKick}
+				circleId={selectedEnv?.id}
+				onDM={(member) => {
+					setShowMembers(false);
+					startDM(member);
+				}}
+				onAssign={(member) => {
+					setShowMembers(false);
+					setPreselectedAssignee(member.id);
+					setShowCreateTask(true);
+				}}
+				onLeave={handleLeaveCircle}
+				onlineUsers={onlineUsers}
 			/>
 		</div>
 	);
