@@ -707,7 +707,7 @@ const Dashboard = () => {
 									{notifications.length > 0 && <span className="badge">{notifications.length}</span>}
 								</div>
 
-								{/* Notification Dropdown deneme */}
+								{/* Notification Dropdown */}
 								{showNotifications && (
 									<div className="notification-menu">
 										<div className="notification-header">
