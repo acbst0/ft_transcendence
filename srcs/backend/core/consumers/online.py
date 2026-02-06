@@ -29,10 +29,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         self.room_group_name = 'global_presence'
         print(f"DEBUG: User {self.user} joining global_presence")
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
         
@@ -66,10 +63,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def user_status(self, event):
         await self.send(text_data=json.dumps({

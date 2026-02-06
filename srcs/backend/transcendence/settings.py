@@ -138,7 +138,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Social Auth / Google OAuth Configuration
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
@@ -154,12 +153,10 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name', 'email']
 
-# Redirect URLs after OAuth
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
 SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/api/auth/google/callback/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/?oauth_error=login_failed'
 
-# Pipeline to create UserProfile automatically
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
@@ -170,6 +167,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
-    'core.pipeline.create_user_profile',  # Custom pipeline
+    'core.pipeline.create_user_profile',
 )
 
