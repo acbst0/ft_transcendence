@@ -11,7 +11,6 @@ class SudokuConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'sudoku_{self.circle_id}'
         self.user = self.scope.get("user")
 
-        # Basic Auth check (Token auth fallback if anonymous)
         if not self.user or self.user.is_anonymous:
              try:
                 query_string = self.scope['query_string'].decode()
@@ -25,7 +24,6 @@ class SudokuConsumer(AsyncWebsocketConsumer):
              await self.close()
              return
 
-        # Check membership
         is_member = await self.check_membership(self.user, self.circle_id)
         if not is_member:
             await self.close()
@@ -38,7 +36,6 @@ class SudokuConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        # Send current game state
         game_state = await self.get_game_state(self.circle_id)
         if game_state:
              await self.send(text_data=json.dumps({
@@ -65,10 +62,8 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             col = data['col']
             value = data['value']
             
-            # Update DB
             await self.update_game_cell(self.circle_id, row, col, value)
             
-            # Broadcast
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {

@@ -58,7 +58,6 @@ class TaskSerializer(serializers.ModelSerializer):
         checklist_data = validated_data.pop('checklist_items', None)
         assignees = validated_data.pop('assignees', None)
         
-        # Update Task fields
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
         instance.status = validated_data.get('status', instance.status)
@@ -68,7 +67,6 @@ class TaskSerializer(serializers.ModelSerializer):
         if assignees is not None:
             instance.assignees.set(assignees)
 
-        # Handle Checklist Items if provided
         if checklist_data is not None:
             existing_items = {item.id: item for item in instance.checklist_items.all()}
             incoming_item_ids = []
@@ -76,18 +74,15 @@ class TaskSerializer(serializers.ModelSerializer):
             for item_data in checklist_data:
                 item_id = item_data.get('id')
                 if item_id and item_id in existing_items:
-                    # Update existing item
                     item = existing_items[item_id]
                     item.content = item_data.get('content', item.content)
                     item.is_checked = item_data.get('is_checked', item.is_checked)
                     item.save()
                     incoming_item_ids.append(item_id)
                 else:
-                    # Create new item
                     new_item = ChecklistItem.objects.create(task=instance, **item_data)
                     incoming_item_ids.append(new_item.id)
             
-            # Delete items that are not in the incoming list
             for item_id, item in existing_items.items():
                 if item_id not in incoming_item_ids:
                     item.delete()
@@ -98,7 +93,6 @@ class TaskSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         items = representation.get('checklist_items', [])
         if items:
-            # Sort by is_checked (False < True) and then by id
             sorted_items = sorted(items, key=lambda x: (x['is_checked'], x['id']))
             representation['checklist_items'] = sorted_items
         return representation

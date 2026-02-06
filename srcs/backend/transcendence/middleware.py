@@ -25,12 +25,9 @@ class TokenAuthMiddleware(BaseMiddleware):
                 user = await get_user(token_key)
                 scope['user'] = user
             else:
-                # If no token in query params, user might be authenticated by AuthMiddlewareStack (session)
-                # But if we rely solely on token for React, we can check if user is already set
                 pass
                 
         except Exception as e:
-            # print(f"Middleware Error: {e}")
             pass
             
         return await super().__call__(scope, receive, send)
