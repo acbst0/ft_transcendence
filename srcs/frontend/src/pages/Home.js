@@ -1,44 +1,70 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Home.css';
 
 const Home = () => {
-	return (
-		<div className="home-container">
-			<div className="hero-content">
-				<div className="badge">New Era of Gaming</div>
-				<h1 className="hero-title">
-					Connect, Play, <br />
-					<span className="gradient-text">Transcend.</span>
-				</h1>
-				<p className="hero-subtitle">
-					Experience the ultimate multiplayer ping-pong platform.
-					Challenge friends, climb leaderboards, and master the game in a
-					stunning new dimension.
-				</p>
-				<div className="hero-actions">
-					<button className="cta-btn primary">Start Playing Now</button>
-					<button className="cta-btn secondary">Watch Demo</button>
-				</div>
-			</div>
+  // Yazının açık mı kapalı mı olduğunu tutan state
+  const [isOpen, setIsOpen] = useState(false);
 
-			<div className="hero-visual">
-				{/* Abstract glowing orb or visual representation */}
-				<div className="orb orb-1"></div>
-				<div className="orb orb-2"></div>
-				<div className="glass-card">
-					<div className="game-preview">
-						{/* Simple CSS representation of a pong game */}
-						<div className="pong-table">
-							<div className="net"></div>
-							<div className="paddle left"></div>
-							<div className="paddle right"></div>
-							<div className="ball"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  return (
+    <div className="home-container">
+      <div className="home-content">
+        
+        {}
+        <section className="hero-section">
+          <h1 className="hero-title">ORGANIZE YOUR MIND,<br />PLAN YOUR SUCCESS</h1>
+          <p className="hero-subtitle">Notes, tasks, and a little Sudoku break—all in one place.</p>
+          
+          <div className="toggle-area">
+            <button 
+              className="btn-how-it-works" 
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              HOW IT WORKS
+            </button>
+            
+            {}
+            {isOpen && (
+              <div className="how-it-works-box">
+                <p>
+                  Planora allows you to manage your notes and shared checklists from a single place. 
+                  You can collaborate with your friends in real time, and once your tasks are finished, 
+                  you can refresh your mind with Sudoku.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {}
+        <section className="cards-section">
+          <div className="feature-card light-mint">
+            <span className="card-emoji">📝</span>
+            <div className="card-info">
+              <h3>NOTES</h3>
+              <p>Capture ideas, journal thoughts and keep it safe.</p>
+            </div>
+          </div>
+
+          <div className="feature-card moss-green">
+            <span className="card-emoji">👥</span>
+            <div className="card-info">
+              <h3>SHARED CHECKLISTS</h3>
+              <p>Assign, track, and collaborate on todos with real-time sync.</p>
+            </div>
+          </div>
+
+          <div className="feature-card light-mint">
+            <span className="card-emoji">🔢</span>
+            <div className="card-info">
+              <h3>SUDOKU BREAK</h3>
+              <p>Relax your mind with a puzzle between your tasks.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  );
 };
 
 export default Home;

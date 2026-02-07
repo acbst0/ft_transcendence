@@ -1,7 +1,7 @@
 .auth-form {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
+	gap: 15px;
 }
 
 .form-group {
@@ -9,10 +9,51 @@
 	flex-direction: column;
 	gap: 8px;
 }
+.modal-content {
+    background-color: var(--auth-modal-bg) !important;
+    color: var(--auth-text-color) !important;
+    border-radius: 20px;
+    font-family: 'Quicksand', sans-serif;
+    border-radius: 20px;
+    padding: 30px 20px !important; 
+	box-shadow: none !important; 
+}
 
+.glass-input {
+    background: var(--auth-input-bg) !important;
+    color: var(--auth-input-text) !important;
+    border: none !important;
+    padding: 12px 15px !important;
+    border-radius: 10px !important;
+    font-size: 14px;
+	width: 100% !important; 
+    box-sizing: border-box !important;
+}
+
+.primary-btn {
+    background: var( --auth-modal-pr) !important;
+    color: white !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+}
+
+.divider span {
+    background: #8367c7 !important; 
+    color: rgba(255, 255, 255, 0.885) !important;
+}
+
+.google-btn {
+    background: white !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+}
 .form-group label {
 	font-size: 14px;
-	color: var(--text-muted);
+    color: var(--auth-text-color) !important;
+    font-weight: 500;
 }
 
 .glass-input {
@@ -60,16 +101,15 @@
 	left: 0;
 	right: 0;
 	height: 1px;
-	background: rgba(255, 255, 255, 0.1);
+	background: var(--auth-divider) !important;
 }
 
 .divider span {
-	background: var(--background);
-	background: #13315C;
+	background: var(--auth-modal-bg) !important;
+    color: var(--auth-text-color) !important;
 	padding: 0 10px;
 	position: relative;
 	font-size: 12px;
-	color: var(--text-muted);
 	border-radius: 12px;
 }
 

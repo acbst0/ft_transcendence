@@ -76,7 +76,7 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 	);
 };
 
-export const RegisterModal = ({ isOpen, onClose }) => {
+export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 	const [username, setUsername] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -103,7 +103,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 
 			if (response.ok) {
 				onClose();
-				alert('Account created! Please login.');
+				if (onSuccess) onSuccess('Account created! Please login.');;
 			} else {
 				let msg = 'Registration failed';
 				if (data.username) msg = `Username: ${data.username[0]}`;
@@ -165,7 +165,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 							style={{ width: 'auto', margin: 0 }}
 						/>
 						<span>
-							I have read and accept the <a href="#" onClick={(e) => { e.preventDefault(); alert('KVKK dummy text...'); }} style={{ color: '#4facfe' }}>KVKK terms</a>.
+							I have read and accept the <a href="#" onClick={(e) => { e.preventDefault(); alert('KVKK dummy text...'); }} style={{ color: '#390f50' }}>KVKK terms</a>.
 						</span>
 					</label>
 				</div>
