@@ -17,6 +17,7 @@
     --reg-buton: #754496;
     --primary-hover: #754496;
     --primary: #a36fc6;
+    --nav-bg: transparent;
 }
 
 [data-my-theme='dark'] {
@@ -38,6 +39,6 @@
     --reg-buton: #754496;
     --primary-hover: #754496;
     --primary: #b48fcc;
-
+    --nav-bg: rgba(30, 30, 30, 0.95);
 
 }

@@ -3,14 +3,15 @@
     transition: background-color 0.3s ease;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    padding: 80px 20px;
+    flex-direction: column;
+    align-items: center;
+    padding: 100px 20px;
     font-family: 'Quicksand', sans-serif;
+    padding-top: 120px;
 }
 
 .home-content {
     width: 100%;
-    max-width: 1100px;
     display: flex;
     flex-direction: column;
     gap: 60px;
@@ -19,15 +20,16 @@
 
 .hero-title {
     color: var(--text-hero);
-    font-size: 59px;
+    font-size: clamp(32px, 5vw, 59px); 
     font-weight: 800;
     text-align: center;
     margin-bottom: 10px;
+    line-height: 1.2;
 }
 
 .hero-subtitle {
     color: var(--text-sub);
-    font-size: 20px;
+    font-size: clamp(16px, 2vw, 20px);
     text-align: center;
     margin-bottom: 30px;
 }
@@ -37,6 +39,7 @@
     flex-direction: column;
     align-items: center; 
     width: 100%;
+    margin-bottom: 20px;
 }
 
 .btn-how-it-works {
@@ -47,32 +50,27 @@
     border-radius: 10px;
     font-weight: 700;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.3s ease;
+}
+
+.btn-how-it-works:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
 }
 
 .how-it-works-box {
     margin-top: 20px;
     padding: 20px;
-    border: 2px solid #83ad6c;
+    border: 2px solid var(--auth-modal-pr);
     border-radius: 15px;
-    background-color: #f9f9f9;
-    color: #2b0b3c;
+    background-color: var(--auth-input-bg);
+    color: var(--card-text-dark);
     max-width: 600px;
     text-align: center;
     animation: slideDown 0.3s ease-out; 
 }
 
-.cards-section {
-    display: flex;
-    flex-direction: row;
-    gap: 25px;
-    width: 100%;
-    justify-content: center;
-}
-
 .feature-card {
-    flex: 1;
-    max-width: 320px;
     padding: 40px 20px;
     border-radius: 35px; 
     display: flex;
@@ -80,6 +78,13 @@
     align-items: center;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%; 
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
 }
 
 .light-mint {
@@ -98,7 +103,18 @@
     display: block;
     color: inherit; 
 }
-.card-info h3 { font-weight: 800; margin-bottom: 10px; }
+
+.card-info h3 { 
+    font-weight: 800; 
+    margin-bottom: 10px; 
+    font-size: 22px;
+}
+
+.card-info p {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+}
 
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
