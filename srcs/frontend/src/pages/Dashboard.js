@@ -238,7 +238,8 @@ const Dashboard = () => {
 		const token = localStorage.getItem('token');
 		if (token) {
 			const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-			const wsUrl = `${wsScheme}://${window.location.host}/ws/online/?token=${token}`;
+			const host = window.location.host.replace(':3000', '');
+			const wsUrl = `${wsScheme}://${host}/ws/online/?token=${token}`;
 			const presenceWs = new WebSocket(wsUrl);
 
 			presenceWs.onopen = () => {
@@ -275,7 +276,8 @@ const Dashboard = () => {
 		if (!token) return;
 
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//${window.location.host}/ws/notifications/?token=${token}`;
+		const host = window.location.host.replace(':3000', '');
+		const wsUrl = `${protocol}//${host}/ws/notifications/?token=${token}`;
 		const notifWs = new WebSocket(wsUrl);
 
 		notifWs.onopen = () => { /* Connected */ };
@@ -389,12 +391,13 @@ const Dashboard = () => {
 			setMessages([]);
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+			const host = window.location.host.replace(':3000', '');
 			let wsUrl = '';
 
 			if (activeChatMode === 'circle') {
-				wsUrl = `${protocol}//${window.location.host}/ws/chat/${selectedEnv.id}/?token=${token}`;
+				wsUrl = `${protocol}//${host}/ws/chat/${selectedEnv.id}/?token=${token}`;
 			} else {
-				wsUrl = `${protocol}//${window.location.host}/ws/dm/${dmTarget.id}/?token=${token}`;
+				wsUrl = `${protocol}//${host}/ws/chat/dm/${dmTarget.id}/?token=${token}`;
 			}
 
 			ws.current = new WebSocket(wsUrl);
