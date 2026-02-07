@@ -25,7 +25,7 @@ const Sudoku = ({ circleId, showToast }) => {
 		ws.current = new WebSocket(wsUrl);
 
 		ws.current.onopen = () => {
-			console.log("Sudoku WS Connected");
+			// Connected
 			setIsConnected(true);
 		};
 
@@ -58,7 +58,7 @@ const Sudoku = ({ circleId, showToast }) => {
 		};
 
 		ws.current.onclose = () => {
-			console.log("Sudoku WS Closed");
+			// Silent
 			setIsConnected(false);
 		};
 
@@ -168,41 +168,41 @@ const Sudoku = ({ circleId, showToast }) => {
 			<div className="row g-4 justify-content-center align-items-start">
 				<div className="col-12 col-lg-auto d-flex justify-content-center">
 					<div className="sudoku-board shadow-sm">
-					{board && board.length > 0 && board.map((row, rowIndex) => (
-						row.map((cell, colIndex) => {
-							const isInitial = initialBoard && initialBoard[rowIndex] && initialBoard[rowIndex][colIndex] !== 0;
-							const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
-							const isError = !isInitial && cell !== 0 && solution && cell !== solution[rowIndex][colIndex];
+						{board && board.length > 0 && board.map((row, rowIndex) => (
+							row.map((cell, colIndex) => {
+								const isInitial = initialBoard && initialBoard[rowIndex] && initialBoard[rowIndex][colIndex] !== 0;
+								const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
+								const isError = !isInitial && cell !== 0 && solution && cell !== solution[rowIndex][colIndex];
 
-							return (
-								<div
-									key={`${rowIndex}-${colIndex}`}
-									className={`cell 
+								return (
+									<div
+										key={`${rowIndex}-${colIndex}`}
+										className={`cell 
 										${isInitial ? 'initial' : ''} 
 										${isSelected ? 'selected' : ''}
 										${isError ? 'error' : ''}
 										${(colIndex + 1) % 3 === 0 && colIndex !== 8 ? 'cell-border-right' : ''}
 										${(rowIndex + 1) % 3 === 0 && rowIndex !== 8 ? 'cell-border-bottom' : ''}
 									`}
-									onClick={() => handleCellClick(rowIndex, colIndex)}
-								>
-									{cell !== 0 ? cell : ''}
-								</div>
-							);
-						})
-					))}
+										onClick={() => handleCellClick(rowIndex, colIndex)}
+									>
+										{cell !== 0 ? cell : ''}
+									</div>
+								);
+							})
+						))}
 					</div>
 				</div>
 
 				<div className="col-12 col-lg-auto d-flex justify-content-center">
 					<div className="card bg-body border-secondary shadow-sm sudoku-controls-card">
-					<div className="card-body p-3 d-flex flex-column gap-3">
-						<h6 className="card-title fw-bold mb-0 d-none d-lg-block">Controls</h6>
-						
-						<div className="sudoku-numpad-grid">
-							{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-								<button
-									key={num}
+						<div className="card-body p-3 d-flex flex-column gap-3">
+							<h6 className="card-title fw-bold mb-0 d-none d-lg-block">Controls</h6>
+
+							<div className="sudoku-numpad-grid">
+								{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+									<button
+										key={num}
 										className="btn btn-outline-secondary numpad-btn"
 										onClick={() => handleNumberInput(num)}
 									>
@@ -214,24 +214,24 @@ const Sudoku = ({ circleId, showToast }) => {
 								</button>
 							</div>
 
-						<div className="d-flex flex-column gap-2 w-100">
-							<div>
-								<label className="form-label small text-muted fw-bold">Difficulty</label>
-								<select
-									value={nextDifficulty}
-									onChange={(e) => setNextDifficulty(e.target.value)}
-									className="form-select border-secondary"
-								>
-									<option value="easy">Easy</option>
-									<option value="medium">Medium</option>
-									<option value="hard">Hard</option>
-								</select>
+							<div className="d-flex flex-column gap-2 w-100">
+								<div>
+									<label className="form-label small text-muted fw-bold">Difficulty</label>
+									<select
+										value={nextDifficulty}
+										onChange={(e) => setNextDifficulty(e.target.value)}
+										className="form-select border-secondary"
+									>
+										<option value="easy">Easy</option>
+										<option value="medium">Medium</option>
+										<option value="hard">Hard</option>
+									</select>
+								</div>
+								<button className="btn btn-primary w-100 py-1 fw-bold" onClick={startNewGame}>
+									New Game
+								</button>
 							</div>
-							<button className="btn btn-primary w-100 py-1 fw-bold" onClick={startNewGame}>
-								New Game
-							</button>
 						</div>
-					</div>
 					</div>
 				</div>
 			</div>

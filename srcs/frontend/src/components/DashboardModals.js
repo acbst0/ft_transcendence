@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BootstrapModal from './BootstrapModal';
 import './DashboardModals.css';
+import Sudoku from '../pages/Sudoku';
 
 export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 	const [name, setName] = useState('');
@@ -28,7 +29,7 @@ export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => 
 				showToast('Error creating circle: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -147,7 +148,7 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 				showToast('Error creating task: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -399,7 +400,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 			} else {
 				showToast('Failed to update task', 'Error');
 			}
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const toggleChecklistItem = async (itemId) => {
@@ -432,7 +433,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 				body: JSON.stringify({ status: newStatus })
 			});
 			if (res.ok) onUpdate();
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const canComplete = task.task_type === 'assignment' && task.status !== 'done' && (!task.assigned_to || task.assigned_to.id === user.id);
@@ -686,7 +687,7 @@ export const JoinCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 				showToast('Invalid Code', 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 		}
 	};
 
@@ -811,7 +812,6 @@ export const MembersModal = ({ isOpen, onClose, members, currentUserId, adminId,
 	);
 };
 
-import Sudoku from '../pages/Sudoku';
 
 export const SudokuModal = ({ isOpen, onClose, circleId }) => {
 	return (

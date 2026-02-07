@@ -30,7 +30,7 @@ class TokenAuthMiddleware(BaseMiddleware):
                 pass
                 
         except Exception as e:
-            # print(f"Middleware Error: {e}")
+            pass
             pass
             
         return await super().__call__(scope, receive, send)

@@ -13,46 +13,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Extract token from query string
         try:
             query_string = self.scope['query_string'].decode()
-            print(f"DEBUG: WS Connection attempt. Query: {query_string}")
             if 'token=' not in query_string:
-                print("DEBUG: No token in query string")
                 await self.close()
                 return
             token_key = query_string.split('token=')[1].split('&')[0]
-            print(f"DEBUG: Extracted token: {token_key}")
             self.user = await self.get_user_from_token(token_key)
-            print(f"DEBUG: User found: {self.user}")
         except Exception as e:
-            print(f"DEBUG: Error extracting token: {e}")
+            pass
             await self.close()
             return
 
         if not self.user:
-            print("DEBUG: User authentication failed")
             await self.close()
             return
             
         # Check membership
         is_member = await self.check_membership(self.user, self.room_name)
         if not is_member:
-            print(f"DEBUG: User {self.user} is not member of circle {self.room_name}")
             await self.close()
             return
 
         # Join room group
         try:
-            print(f"DEBUG: Adding to group {self.room_group_name}")
             await self.channel_layer.group_add(
                 self.room_group_name,
                 self.channel_name
             )
-            print("DEBUG: Added to group successfully")
         except Exception as e:
-            print(f"DEBUG: Error adding to group (Redis error?): {e}")
+            pass
             await self.close()
             return
 
-        print("DEBUG: Accepting connection")
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -85,7 +76,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         member_ids = await self.get_circle_members(self.room_name)
         for member_id in member_ids:
             if member_id != self.user.id:
-                print(f"DEBUG: Sending notification to member {member_id}")
                 await self.channel_layer.group_send(
                     f'notifications_{member_id}',
                     {
