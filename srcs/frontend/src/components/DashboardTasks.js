@@ -2,16 +2,14 @@ import React, { useState, useMemo } from 'react';
 import './DashboardTasks.css';
 
 const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCreateTask, openTaskDetail, onCreateCircle }) => {
-	// All hooks must be at the top level, before any conditional returns
+
 	const [searchQuery, setSearchQuery] = useState('');
-	const [filterStatus, setFilterStatus] = useState('all'); // all, active, done
-	const [sortOrder, setSortOrder] = useState('newest'); // newest, oldest
+	const [filterStatus, setFilterStatus] = useState('all');
+	const [sortOrder, setSortOrder] = useState('newest');
 
 	const filteredTasks = useMemo(() => {
 		if (!tasks) return [];
 		let result = [...tasks];
-
-		// Search
 		if (searchQuery.trim()) {
 			const lowerQuery = searchQuery.toLowerCase();
 			result = result.filter(t =>
@@ -19,15 +17,11 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 				(t.description && t.description.toLowerCase().includes(lowerQuery))
 			);
 		}
-
-		// Filter
 		if (filterStatus === 'active') {
 			result = result.filter(t => t.status !== 'done');
 		} else if (filterStatus === 'done') {
 			result = result.filter(t => t.status === 'done');
 		}
-
-		// Sort
 		result.sort((a, b) => {
 			const dateA = new Date(a.created_at);
 			const dateB = new Date(b.created_at);
@@ -36,8 +30,6 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 
 		return result;
 	}, [tasks, searchQuery, filterStatus, sortOrder]);
-
-	// Early return after all hooks
 	if (!selectedEnv) {
 		return (
 			<div className="d-flex flex-column align-items-center justify-content-center welcome-container">
@@ -71,7 +63,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 
 	return (
 		<div className="container-fluid px-4 py-4">
-			{/* Header Section */}
+
 			<div className="d-flex flex-column gap-4 mb-4">
 				<div className="d-flex justify-content-between align-items-center">
 					<div>
@@ -130,8 +122,6 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					</div>
 				</div>
 			</div>
-
-			{/* Tasks Grid */}
 			<div className="row g-4">
 				{tasks.length === 0 && (
 					<div className="col-12">
@@ -171,15 +161,13 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 								className="card h-100 border-0 position-relative overflow-hidden task-card"
 								onClick={() => openTaskDetail(task)}
 							>
-								{/* Colorful Corner Dots - Keep these as they were nice accents in Soft UI */}
+
 								<div className="task-card-dot left"></div>
 								<div className="task-card-dot right"></div>
-
-								{/* Top Border/Accent */}
 								<div className="task-card-top-border"></div>
 
 								<div className="card-body p-4 d-flex flex-column task-card-body">
-									{/* Header */}
+
 									<div className="d-flex justify-content-between align-items-center mb-3">
 										<div
 											className="d-flex align-items-center gap-2 task-type-badge"
@@ -197,15 +185,11 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 											</div>
 										)}
 									</div>
-
-									{/* Title */}
 									<h5
 										className="card-title mb-3 fw-semibold task-title"
 									>
 										{task.title}
 									</h5>
-
-									{/* Description/Preview */}
 									<div
 										className="mb-3 flex-grow-1 task-description-box"
 									>
@@ -220,8 +204,6 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 											)
 											: (task.description || <em style={{ opacity: 0.5 }}>No description</em>)}
 									</div>
-
-									{/* Footer */}
 									<div
 										className="pt-3 d-flex justify-content-between align-items-center border-top border-secondary task-footer"
 									>
