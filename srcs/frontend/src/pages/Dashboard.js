@@ -661,7 +661,7 @@ const Dashboard = () => {
 
 				<main className={`content-area view-${activeView}`}>
 					{activeView === 'sudoku' ? (
-						<Sudoku circleId={selectedEnv?.id} showToast={showToast} />
+						<Sudoku key={selectedEnv?.id} circleId={selectedEnv?.id} showToast={showToast} />
 					) : activeView === 'settings' ? (
 						<DashboardSettings
 							profileData={profileData}
