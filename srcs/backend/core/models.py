@@ -88,6 +88,7 @@ class SudokuGame(models.Model):
     solution = models.JSONField(default=list) # Solution grid
     difficulty = models.CharField(max_length=20, default='easy')
     is_solved = models.BooleanField(default=False)
+    mistakes = models.IntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

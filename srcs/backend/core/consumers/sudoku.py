@@ -47,7 +47,9 @@ class SudokuConsumer(AsyncWebsocketConsumer):
                 'initial_board': game_state['initial_board'],
                 'solution': game_state['solution'],
                 'difficulty': game_state['difficulty'],
-                'is_solved': game_state['is_solved']
+                'difficulty': game_state['difficulty'],
+                'is_solved': game_state['is_solved'],
+                'mistakes': game_state['mistakes']
             }))
 
     async def disconnect(self, close_code):
@@ -64,9 +66,10 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             row = data['row']
             col = data['col']
             value = data['value']
+            is_mistake = data.get('is_mistake', False)
             
             # Update DB
-            await self.update_game_cell(self.circle_id, row, col, value)
+            new_mistakes = await self.update_game_cell(self.circle_id, row, col, value, is_mistake)
             
             # Broadcast
             await self.channel_layer.group_send(
@@ -76,6 +79,7 @@ class SudokuConsumer(AsyncWebsocketConsumer):
                     'row': row,
                     'col': col,
                     'value': value,
+                    'mistakes': new_mistakes,
                     'sender_id': self.user.id
                 }
             )
@@ -95,7 +99,9 @@ class SudokuConsumer(AsyncWebsocketConsumer):
                     'board': board,
                     'initial_board': initial_board,
                     'solution': solution,
-                    'difficulty': difficulty
+                    'solution': solution,
+                    'difficulty': difficulty,
+                    'mistakes': 0
                 }
             )
 
@@ -108,7 +114,9 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             'board': event['board'],
             'initial_board': event['initial_board'],
             'solution': event.get('solution', []),
-            'difficulty': event['difficulty']
+            'solution': event.get('solution', []),
+            'difficulty': event['difficulty'],
+            'mistakes': event.get('mistakes', 0)
         }))
 
     @database_sync_to_async
@@ -135,21 +143,26 @@ class SudokuConsumer(AsyncWebsocketConsumer):
                 'initial_board': game.initial_board,
                 'solution': game.solution,
                 'difficulty': game.difficulty,
-                'is_solved': game.is_solved
+                'difficulty': game.difficulty,
+                'is_solved': game.is_solved,
+                'mistakes': game.mistakes
             }
         except SudokuGame.DoesNotExist:
             return None
 
     @database_sync_to_async
-    def update_game_cell(self, circle_id, row, col, value):
+    def update_game_cell(self, circle_id, row, col, value, is_mistake=False):
         try:
             game = SudokuGame.objects.get(circle_id=circle_id)
             board = game.board
             board[row][col] = value
             game.board = board
+            if is_mistake:
+                game.mistakes += 1
             game.save()
+            return game.mistakes
         except SudokuGame.DoesNotExist:
-            pass
+            return 0
 
     @database_sync_to_async
     def create_or_update_game(self, circle_id, board, initial_board, solution, difficulty):
@@ -161,6 +174,9 @@ class SudokuConsumer(AsyncWebsocketConsumer):
                 'initial_board': initial_board,
                 'solution': solution,
                 'difficulty': difficulty,
-                'is_solved': False
+                'solution': solution,
+                'difficulty': difficulty,
+                'is_solved': False,
+                'mistakes': 0
             }
         )
