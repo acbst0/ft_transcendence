@@ -16,7 +16,6 @@ export const useWebSocket = (url, { onMessage, onConnect, onDisconnect, onError 
   const maxReconnectAttempts = 5;
   const reconnectDelay = useRef(1000);
 
-  // Connection handler
   const connect = useCallback(() => {
     if (webSocketRef.current?.readyState === WebSocket.OPEN) {
       return;
@@ -61,14 +60,13 @@ export const useWebSocket = (url, { onMessage, onConnect, onDisconnect, onError 
           onDisconnect();
         }
 
-        // Attempt to reconnect
         if (reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current += 1;
           console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
           setTimeout(() => {
             connect();
           }, reconnectDelay.current);
-          reconnectDelay.current = Math.min(reconnectDelay.current * 2, 10000); // Max 10s delay
+          reconnectDelay.current = Math.min(reconnectDelay.current * 2, 10000); 
         }
       };
 
@@ -89,7 +87,6 @@ export const useWebSocket = (url, { onMessage, onConnect, onDisconnect, onError 
     }
   }, [url, onMessage, onConnect, onDisconnect, onError]);
 
-  // Send message handler
   const sendMessage = useCallback((data) => {
     if (webSocketRef.current?.readyState === WebSocket.OPEN) {
       webSocketRef.current.send(JSON.stringify(data));
@@ -98,7 +95,6 @@ export const useWebSocket = (url, { onMessage, onConnect, onDisconnect, onError 
     }
   }, []);
 
-  // Disconnect handler
   const disconnect = useCallback(() => {
     if (webSocketRef.current) {
       webSocketRef.current.close();
@@ -106,7 +102,6 @@ export const useWebSocket = (url, { onMessage, onConnect, onDisconnect, onError 
     }
   }, []);
 
-  // Effect: Connect on mount, disconnect on unmount
   useEffect(() => {
     connect();
 

@@ -7,15 +7,14 @@ const Sudoku = ({ circleId, showToast }) => {
 	const [initialBoard, setInitialBoard] = useState(Array(9).fill().map(() => Array(9).fill(0)));
 	const [solution, setSolution] = useState(null);
 	const [selectedCell, setSelectedCell] = useState(null);
-	const [mistakes, setMistakes] = useState(0); // This is local-only for now, arguably could be shared but let's keep it simple
+	const [mistakes, setMistakes] = useState(0); 
 	const [isSolved, setIsSolved] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
-	const [gameDifficulty, setGameDifficulty] = useState('easy'); // Difficulty of the active game
-	const [nextDifficulty, setNextDifficulty] = useState('easy'); // Difficulty selected for the next game
+	const [gameDifficulty, setGameDifficulty] = useState('easy'); 
+	const [nextDifficulty, setNextDifficulty] = useState('easy'); 
 
 	const ws = useRef(null);
 
-	// WebSocket Connection
 	useEffect(() => {
 		if (!circleId) return;
 
@@ -39,12 +38,8 @@ const Sudoku = ({ circleId, showToast }) => {
 				setSolution(data.solution);
 				setIsSolved(data.is_solved);
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty); // Sync selector to current game initially
-				// If no game exists/empty board, maybe auto-start one? 
-				// For now let's wait for user to click New Game if empty.
-				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) {
-					// Optional: Auto start if empty
-				}
+				setNextDifficulty(data.difficulty); 
+				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) {}
 			} else if (data.type === 'board_update') {
 				setBoard(prev => {
 					const newBoard = prev.map(row => [...row]);
@@ -56,9 +51,9 @@ const Sudoku = ({ circleId, showToast }) => {
 				setInitialBoard(data.initial_board);
 				setSolution(data.solution);
 				setIsSolved(false);
-				setMistakes(0); // Reset mistakes on new game
+				setMistakes(0); 
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty); // Sync selector? Optional, maybe keep user choice. Let's sync to show what everyone is playing.
+				setNextDifficulty(data.difficulty);
 			}
 		};
 
@@ -77,10 +72,9 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		const { solved, initial } = sudokuGenerator.generate(nextDifficulty);
 
-		// Send to server
 		ws.current.send(JSON.stringify({
 			type: 'new_game',
-			board: initial, // current board starts as initial
+			board: initial, 
 			initial_board: initial,
 			solution: solved,
 			difficulty: nextDifficulty
@@ -95,23 +89,13 @@ const Sudoku = ({ circleId, showToast }) => {
 		if (!selectedCell || isSolved || !isConnected) return;
 		const { row, col } = selectedCell;
 
-		// Cannot edit initial cells
 		if (initialBoard && initialBoard[row][col] !== 0) return;
-
-		// Optimistic update? 
-		// Ideally we wait for server, but for responsiveness we can check locally if we have solution
-
-		// Logic:
-		// 1. Check valid/invalid against solution if we have it
 		if (solution) {
 			if (num !== 0 && num !== solution[row][col]) {
 				setMistakes(prev => prev + 1);
-				// We still allow placing the wrong number? 
-				// The previous implementation allowed it but counted mistake.
 			}
 		}
 
-		// Send to server
 		ws.current.send(JSON.stringify({
 			type: 'update_cell',
 			row,
@@ -120,12 +104,10 @@ const Sudoku = ({ circleId, showToast }) => {
 		}));
 	};
 
-	// Keyboard Support
 	useEffect(() => {
 		const handleKeyDown = (e) => {
 			if (!selectedCell) return;
 
-			// Navigation
 			if (e.key === 'ArrowUp') {
 				e.preventDefault();
 				setSelectedCell(prev => ({ ...prev, row: Math.max(0, prev.row - 1) }));
@@ -139,7 +121,6 @@ const Sudoku = ({ circleId, showToast }) => {
 				e.preventDefault();
 				setSelectedCell(prev => ({ ...prev, col: Math.min(8, prev.col + 1) }));
 			}
-			// Numbers and Delete
 			else if (e.key >= '1' && e.key <= '9') {
 				handleNumberInput(parseInt(e.key));
 			} else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -151,7 +132,6 @@ const Sudoku = ({ circleId, showToast }) => {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [selectedCell, handleNumberInput]);
 
-	// Check win condition locally if board updates
 	useEffect(() => {
 		if (solution && board && board.length > 0) {
 			let won = true;

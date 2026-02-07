@@ -11,7 +11,6 @@ import DashboardChat from '../components/DashboardChat';
 import Toast from '../components/Toast';
 
 const Dashboard = () => {
-	// Layout States
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 	const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 	const [comboOpen, setComboOpen] = useState(false);
@@ -33,47 +32,36 @@ const Dashboard = () => {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	// Feature States
 	const [chatOpen, setChatOpen] = useState(false);
-
-	// Data States
-	const [selectedEnv, setSelectedEnv] = useState(null); // Full Circle Object
+	const [selectedEnv, setSelectedEnv] = useState(null);
 	const [myCircles, setMyCircles] = useState([]);
 	const [tasks, setTasks] = useState([]);
-	const [user, setUser] = useState({}); // Current user data
-
-	// Detail Modal State
+	const [user, setUser] = useState({}); 
 	const [selectedTask, setSelectedTask] = useState(null);
 	const [showTaskDetail, setShowTaskDetail] = useState(false);
 	const [preselectedAssignee, setPreselectedAssignee] = useState('');
-
-	// Chat States
-	const [activeChatMode, setActiveChatMode] = useState('circle'); // 'circle' or 'dm'
-	const [dmTarget, setDmTarget] = useState(null); // User object we are chatting with
+	const [activeChatMode, setActiveChatMode] = useState('circle');
+	const [dmTarget, setDmTarget] = useState(null);
 	const [messages, setMessages] = useState([]);
 	const [chatInput, setChatInput] = useState('');
 	const [isConnected, setIsConnected] = useState(false);
 	const ws = React.useRef(null);
 	const messagesEndRef = React.useRef(null);
 
-	// Settings States
+
 	const [profileData, setProfileData] = useState({
 		username: '',
 		email: '',
 		password: '',
-		avatar: null, // File object
-		avatarUrl: ''  // Preview URL
+		avatar: null, 
+		avatarUrl: ''
 	});
 	const [editingCircleName, setEditingCircleName] = useState('');
 	const [editingDescription, setEditingDescription] = useState('');
-
-	// Notification State
 	const [toasts, setToasts] = useState([]);
 	const [notifications, setNotifications] = useState([]);
 	const [showNotifications, setShowNotifications] = useState(false);
 	const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
-
-	// Modal States
 	const [showCreateCircle, setShowCreateCircle] = useState(false);
 	const [showCreateTask, setShowCreateTask] = useState(false);
 	const [showInvite, setShowInvite] = useState(false);
@@ -93,8 +81,6 @@ const Dashboard = () => {
 
 	const handleNotificationClick = async (notif) => {
 		if (notif.type === 'direct_message') {
-			// Find user object from members list of current circle
-			// If not found, we might need a better way, but for now scan all circles
 			let targetUser = null;
 			for (const c of myCircles) {
 				const member = c.members.find(m => m.id === notif.sender_id);
@@ -104,14 +90,12 @@ const Dashboard = () => {
 				}
 			}
 
-			// Fallback if not found in any circle (unlikely if they are chatting)
 			if (!targetUser) {
 				targetUser = { id: notif.sender_id, username: notif.sender };
 			}
 
 			startDM(targetUser);
 		} else if (notif.type === 'circle_message') {
-			// Find circle
 			const circle = myCircles.find(c => c.name === notif.circle_id || c.id === Number(notif.circle_id));
 			if (circle) {
 				setSelectedEnv(circle);
@@ -119,12 +103,9 @@ const Dashboard = () => {
 				setChatOpen(true);
 			}
 		} else if (['task_assigned', 'note_created', 'checklist_created', 'task_completed'].includes(notif.type)) {
-			// Find circle and switch
 			const circle = myCircles.find(c => c.id === Number(notif.circle_id));
 			if (circle) {
 				setSelectedEnv(circle);
-
-				// Fetch and open task
 				try {
 					const token = localStorage.getItem('token');
 					const res = await fetch(`/api/tasks/${notif.task_id}/`, {
@@ -140,7 +121,6 @@ const Dashboard = () => {
 				}
 			}
 		}
-		// Remove from list
 		setNotifications(prev => prev.filter(n => n.id !== notif.id));
 		setShowNotifications(false);
 	};
@@ -159,16 +139,10 @@ const Dashboard = () => {
 
 			if (res.ok) {
 				showToast("Member kicked successfully");
-				// Refresh circle data
-				fetchCircles(); // This updates myCircles which updates selectedEnv eventually
-				// But we need to update selectedEnv explicitly if it doesn't auto-update
-				// Actually fetchCircles updates myCircles, but selectedEnv is a separate object reference.
-				// We should probably re-fetch the specific circle or update local state.
+				fetchCircles();
 				const updatedCircle = { ...selectedEnv };
 				updatedCircle.members = updatedCircle.members.filter(m => m.id !== memberId);
 				setSelectedEnv(updatedCircle);
-
-				// Also update the list in myCircles
 				setMyCircles(prev => prev.map(c => c.id === circleId ? updatedCircle : c));
 			} else {
 				const err = await res.json();
@@ -193,10 +167,8 @@ const Dashboard = () => {
 
 			if (res.ok) {
 				showToast("You have left the circle.");
-				// Remove from myCircles
 				const updatedCircles = myCircles.filter(c => c.id !== circleToLeave);
 				setMyCircles(updatedCircles);
-				// Update selectedEnv
 				if (updatedCircles.length > 0) setSelectedEnv(updatedCircles[0]);
 				else setSelectedEnv(null);
 				setActiveView('dashboard');
@@ -209,8 +181,6 @@ const Dashboard = () => {
 	};
 
 	const [onlineUsers, setOnlineUsers] = useState(new Set());
-
-	// Initial Data Fetch
 	useEffect(() => {
 		const fetchUserData = async () => {
 			const token = localStorage.getItem('token');
@@ -244,7 +214,6 @@ const Dashboard = () => {
 		fetchUserData();
 		fetchCircles();
 
-		// Connect to Presence WebSocket
 		const token = localStorage.getItem('token');
 		if (token) {
 			const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -284,7 +253,6 @@ const Dashboard = () => {
 
 	}, []);
 
-	// Notification WebSocket
 	useEffect(() => {
 		const token = localStorage.getItem('token');
 		if (!token) return;
@@ -300,7 +268,6 @@ const Dashboard = () => {
 				const data = JSON.parse(event.data);
 				if (data.type === 'notification' && data.data) {
 					const notif = data.data;
-					// Add to toasts (popup)
 					setToasts(prev => [...prev, {
 						id: Date.now(),
 						sender: notif.sender,
@@ -308,14 +275,13 @@ const Dashboard = () => {
 						raw_data: notif
 					}]);
 
-					// Add to history
 					setNotifications(prev => [{
 						id: Date.now(),
 						type: notif.type,
 						sender: notif.sender,
-						sender_id: notif.sender_id, // Important for DM
-						circle_id: notif.circle_id, // Important for Circle
-						task_id: notif.task_id,     // Important for Task
+						sender_id: notif.sender_id, 
+						circle_id: notif.circle_id,
+						task_id: notif.task_id, 
 						content: notif.message,
 						timestamp: new Date()
 					}, ...prev]);
@@ -351,7 +317,6 @@ const Dashboard = () => {
 			if (res.ok) {
 				const data = await res.json();
 				setTasks(data);
-				// Also update selected task if open
 				if (selectedTask) {
 					const updated = data.find(t => t.id === selectedTask.id);
 					if (updated) setSelectedTask(updated);
@@ -395,7 +360,6 @@ const Dashboard = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
 
-	// WebSocket Connection
 	useEffect(() => {
 		if ((activeChatMode === 'circle' && selectedEnv) || (activeChatMode === 'dm' && dmTarget)) {
 			const token = localStorage.getItem('token');
@@ -405,7 +369,7 @@ const Dashboard = () => {
 			}
 			if (ws.current) ws.current.close();
 
-			setMessages([]); // Clear messages on switch
+			setMessages([]); 
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 			let wsUrl = '';
@@ -470,14 +434,12 @@ const Dashboard = () => {
 		}
 	}, [selectedEnv]);
 
-	// Auto-select circle if none selected but circles exist
 	useEffect(() => {
 		if (myCircles.length > 0 && !selectedEnv) {
 			setSelectedEnv(myCircles[0]);
 		}
 	}, [myCircles, selectedEnv]);
 
-	// Helpers
 	const sendMessage = (e) => {
 		e.preventDefault();
 		if (!chatInput.trim() || !isConnected || !ws.current) return;
@@ -490,7 +452,7 @@ const Dashboard = () => {
 	};
 
 	const startDM = (targetUser) => {
-		if (targetUser.id === user.id) return; // Can't chat with self
+		if (targetUser.id === user.id) return; 
 		setDmTarget(targetUser);
 		setActiveChatMode('dm');
 		setChatOpen(true);
@@ -594,7 +556,6 @@ const Dashboard = () => {
 		}
 	};
 
-	// Task Actions (Passed to Modal)
 	const deleteTask = async (taskId) => {
 		const token = localStorage.getItem('token');
 		try {
@@ -615,7 +576,7 @@ const Dashboard = () => {
 		window.location.href = '/';
 	};
 
-	// Close one sidebar if other opens
+
 	const openChat = () => { setChatOpen(true); };
 	const openSettings = () => { setActiveView('settings'); };
 
@@ -744,7 +705,6 @@ const Dashboard = () => {
 				isMobile={isMobile}
 			/>
 
-			{/* Modal Components */}
 			<CreateCircleModal isOpen={showCreateCircle} onClose={() => setShowCreateCircle(false)} onSuccess={(newCircle) => { setMyCircles([...myCircles, newCircle]); setSelectedEnv(newCircle); }} showToast={showToast} />
 			<InviteModal isOpen={showInvite} onClose={() => setShowInvite(false)} inviteCode={selectedEnv?.invite_code} showToast={showToast} />
 			<JoinCircleModal isOpen={showJoin} onClose={() => setShowJoin(false)} onSuccess={(c) => { if (!myCircles.find(x => x.id === c.id)) setMyCircles([...myCircles, c]); setSelectedEnv(c); }} showToast={showToast} />

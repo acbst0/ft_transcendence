@@ -1,4 +1,3 @@
-/* Welcome / Empty State */
 .welcome-container {
     min-height: 60vh;
 }
@@ -29,7 +28,6 @@
     border-radius: 8px;
 }
 
-/* Header */
 .tasks-header-title {
     font-size: 28px;
     color: var(--text);
@@ -55,7 +53,6 @@
     cursor: pointer;
 }
 
-/* No Tasks Placeholder */
 .no-tasks-container {
     background: var(--surface);
     border: 2px dashed var(--border);
@@ -72,9 +69,8 @@
     font-size: 15px;
 }
 
-/* Task Card Themes */
 .task-card-wrapper {
-    --task-color: #83ad6c; /* Default assignment */
+    --task-color: #83ad6c;
     --task-bg-light: rgba(131, 173, 108, 0.08);
 }
 
@@ -93,7 +89,6 @@
     --task-bg-light: rgba(131, 173, 108, 0.08);
 }
 
-/* Task Card */
 .task-card {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

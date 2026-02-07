@@ -65,9 +65,7 @@
 
 .divider span {
 	background: var(--background);
-	/* Fallback if transparent */
 	background: #13315C;
-	/* Match modal bg kinda */
 	padding: 0 10px;
 	position: relative;
 	font-size: 12px;
@@ -75,10 +73,8 @@
 	border-radius: 12px;
 }
 
-/* Adjust span bg to match modal glass roughly - using a tricky way or just transparent */
 .glass .divider span {
 	background: #252e42;
-	/* Guestimation of mixed color */
 }
 
 .google-btn {

@@ -64,7 +64,6 @@ const DashboardTopbar = ({
                 </ul>
             </div>
 
-            {/* Right Top Controls */}
             <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto">
                 <button className={`btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 topbar-icon-btn ${isMobile ? 'mobile' : ''}`} onClick={toggleTheme}>
                     {darkMode ? <i className="fa-solid fa-sun"></i> : <i className="fa-solid fa-moon"></i>}
@@ -78,7 +77,6 @@ const DashboardTopbar = ({
                     </div>
                 )}
 
-                {/* Notification Bell */}
                 <div className="position-relative">
                     <button 
                         className={`btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-secondary position-relative topbar-icon-btn notification-btn ${isMobile ? 'mobile' : ''}`} 
@@ -92,7 +90,6 @@ const DashboardTopbar = ({
                         )}
                     </button>
 
-                    {/* Notification Dropdown */}
                     {showNotifications && (
                         <div className={`card position-absolute end-0 mt-2 shadow notification-dropdown ${isMobile ? 'mobile' : ''}`}>
                             <div className="card-header notification-header d-flex justify-content-between align-items-center py-3 px-3">
@@ -125,11 +122,9 @@ const DashboardTopbar = ({
                     )}
                 </div>
 
-                {/* Avatar Stack */}
                 {selectedEnv && selectedEnv.members && selectedEnv.members.length > 0 && (
                     <div className={`d-flex align-items-center ${isMobile ? 'me-2' : 'me-3'}`}>
                         {selectedEnv.members.slice(0, isMobile ? 1 : 3).map((member, i) => {
-                            // Generate consistent color
                             let hash = 0;
                             for (let k = 0; k < member.username.length; k++) {
                                 hash = member.username.charCodeAt(k) + ((hash << 5) - hash);

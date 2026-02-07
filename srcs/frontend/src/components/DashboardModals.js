@@ -437,7 +437,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 
 	const canComplete = task.task_type === 'assignment' && task.status !== 'done' && (!task.assigned_to || task.assigned_to.id === user.id);
 	const canDelete = task.created_by.id === user.id;
-	const canEdit = true; // Allow all members to edit
+	const canEdit = true; 
 
 	return (
 		<>

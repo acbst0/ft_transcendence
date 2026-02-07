@@ -86,7 +86,6 @@
     color: var(--accent);
 }
 
-/* Visuals */
 .hero-visual {
     flex: 1;
     position: relative;
@@ -201,6 +200,6 @@
     }
 
     .hero-visual {
-        display: none; /* Hide complex visual on small screens for clarity */
+        display: none; 
     }
 }
