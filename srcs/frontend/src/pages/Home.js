@@ -37,7 +37,7 @@ const Home = () => {
         {}
         <section className="cards-section">
           <div className="feature-card light-mint">
-            <span className="card-emoji">📝</span>
+            <i className="fa-solid fa-pen-to-square card-icon"></i>
             <div className="card-info">
               <h3>NOTES</h3>
               <p>Capture ideas, journal thoughts and keep it safe.</p>
@@ -45,7 +45,7 @@ const Home = () => {
           </div>
 
           <div className="feature-card moss-green">
-            <span className="card-emoji">👥</span>
+            <i className="fa-solid fa-users-viewfinder card-icon"></i>
             <div className="card-info">
               <h3>SHARED CHECKLISTS</h3>
               <p>Assign, track, and collaborate on todos with real-time sync.</p>
@@ -53,7 +53,7 @@ const Home = () => {
           </div>
 
           <div className="feature-card light-mint">
-            <span className="card-emoji">🔢</span>
+            <i className="fa-solid fa-puzzle-piece card-icon"></i>
             <div className="card-info">
               <h3>SUDOKU BREAK</h3>
               <p>Relax your mind with a puzzle between your tasks.</p>
