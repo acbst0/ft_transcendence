@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import { LoginModal, RegisterModal } from './components/AuthModals';
-import Notification from './components/Notification'; // Bildirim bileşenini ekledik
+import Notification from './components/Notification'; 
 import './theme.css';
 
 function MainLayout() {
@@ -78,7 +78,7 @@ function MainLayout() {
 			<RegisterModal
 				isOpen={isRegisterOpen}
 				onClose={() => setIsRegisterOpen(false)}
-				onSuccess={handleRegisterSuccess} // Başarı durumunda bildirimi tetikle
+				onSuccess={handleRegisterSuccess} 
 			/>
 		</>
 	);

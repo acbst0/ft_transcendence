@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './Home.css';
 
 const Home = () => {
-  // Yazının açık mı kapalı mı olduğunu tutan state
   const [isOpen, setIsOpen] = useState(false);
 
   return (
