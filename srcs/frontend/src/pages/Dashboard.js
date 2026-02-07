@@ -321,7 +321,22 @@ const Dashboard = () => {
 			if (res.ok) {
 				const data = await res.json();
 				setMyCircles(data);
-				if (data.length > 0 && !selectedEnv) setSelectedEnv(data[0]);
+
+				let envToSelect = null;
+				const savedEnvId = localStorage.getItem('lastSelectedEnvId');
+
+				if (savedEnvId) {
+					const found = data.find(c => c.id === Number(savedEnvId));
+					if (found) envToSelect = found;
+				}
+
+				if (!envToSelect && data.length > 0) {
+					envToSelect = data[0];
+				}
+
+				if (envToSelect && (!selectedEnv || selectedEnv.id !== envToSelect.id)) {
+					setSelectedEnv(envToSelect);
+				}
 			}
 		} catch (e) { /* Silent */ }
 	};
@@ -454,7 +469,11 @@ const Dashboard = () => {
 
 	useEffect(() => {
 		if (myCircles.length > 0 && !selectedEnv) {
-			setSelectedEnv(myCircles[0]);
+			const savedEnvId = localStorage.getItem('lastSelectedEnvId');
+			let found = null;
+			if (savedEnvId) found = myCircles.find(c => c.id === Number(savedEnvId));
+
+			setSelectedEnv(found || myCircles[0]);
 		}
 	}, [myCircles, selectedEnv]);
 
@@ -487,7 +506,10 @@ const Dashboard = () => {
 	const selectEnv = (circle) => {
 		if (circle === 'create') setShowCreateCircle(true);
 		else if (circle === 'join') setShowJoin(true);
-		else setSelectedEnv(circle);
+		else {
+			setSelectedEnv(circle);
+			localStorage.setItem('lastSelectedEnvId', circle.id);
+		}
 		setComboOpen(false);
 	};
 
@@ -717,9 +739,9 @@ const Dashboard = () => {
 				messagesEndRef={messagesEndRef}
 				isMobile={isMobile}
 			/>
-			<CreateCircleModal isOpen={showCreateCircle} onClose={() => setShowCreateCircle(false)} onSuccess={(newCircle) => { setMyCircles([...myCircles, newCircle]); setSelectedEnv(newCircle); }} showToast={showToast} />
+			<CreateCircleModal isOpen={showCreateCircle} onClose={() => setShowCreateCircle(false)} onSuccess={(newCircle) => { setMyCircles([...myCircles, newCircle]); setSelectedEnv(newCircle); localStorage.setItem('lastSelectedEnvId', newCircle.id); }} showToast={showToast} />
 			<InviteModal isOpen={showInvite} onClose={() => setShowInvite(false)} inviteCode={selectedEnv?.invite_code} showToast={showToast} />
-			<JoinCircleModal isOpen={showJoin} onClose={() => setShowJoin(false)} onSuccess={(c) => { if (!myCircles.find(x => x.id === c.id)) setMyCircles([...myCircles, c]); setSelectedEnv(c); }} showToast={showToast} />
+			<JoinCircleModal isOpen={showJoin} onClose={() => setShowJoin(false)} onSuccess={(c) => { if (!myCircles.find(x => x.id === c.id)) setMyCircles([...myCircles, c]); setSelectedEnv(c); localStorage.setItem('lastSelectedEnvId', c.id); }} showToast={showToast} />
 			<CreateTaskModal
 				isOpen={showCreateTask}
 				onClose={() => setShowCreateTask(false)}
