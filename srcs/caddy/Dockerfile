@@ -1,7 +1,9 @@
 FROM caddy:2-alpine
 
-# Install OpenSSL
-RUN apk add --no-cache openssl bash
+# Update package index and install required packages
+RUN apk update && \
+	apk add --no-cache openssl bash ca-certificates && \
+	rm -rf /var/cache/apk/*
 
 # Copy certificate generation script
 COPY generate-cert.sh /usr/local/bin/generate-cert.sh

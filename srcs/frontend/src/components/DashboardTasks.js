@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import './DashboardTasks.css';
 
 const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCreateTask, openTaskDetail, onCreateCircle }) => {
@@ -6,6 +6,8 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 	const [searchQuery, setSearchQuery] = useState('');
 	const [filterStatus, setFilterStatus] = useState('all');
 	const [sortOrder, setSortOrder] = useState('newest');
+	const [currentPage, setCurrentPage] = useState(1);
+	const [tasksPerPage] = useState(9); // 3x3 grid
 
 	const filteredTasks = useMemo(() => {
 		if (!tasks) return [];
@@ -30,6 +32,53 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 
 		return result;
 	}, [tasks, searchQuery, filterStatus, sortOrder]);
+
+	// Pagination hesaplamaları
+	const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+	const indexOfLastTask = currentPage * tasksPerPage;
+	const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+	const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+
+	// Filtre değiştiğinde ilk sayfaya dön
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchQuery, filterStatus, sortOrder]);
+
+	// Sayfa değiştir ve yukarı kaydır
+	const handlePageChange = (pageNumber) => {
+		setCurrentPage(pageNumber);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	};
+
+	// Sayfa numaralarını oluştur
+	const getPageNumbers = () => {
+		const pageNumbers = [];
+		const maxVisible = 5;
+
+		if (totalPages <= maxVisible) {
+			for (let i = 1; i <= totalPages; i++) {
+				pageNumbers.push(i);
+			}
+		} else {
+			if (currentPage <= 3) {
+				for (let i = 1; i <= 4; i++) pageNumbers.push(i);
+				pageNumbers.push('...');
+				pageNumbers.push(totalPages);
+			} else if (currentPage >= totalPages - 2) {
+				pageNumbers.push(1);
+				pageNumbers.push('...');
+				for (let i = totalPages - 3; i <= totalPages; i++) pageNumbers.push(i);
+			} else {
+				pageNumbers.push(1);
+				pageNumbers.push('...');
+				for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
+				pageNumbers.push('...');
+				pageNumbers.push(totalPages);
+			}
+		}
+
+		return pageNumbers;
+	};
 	if (!selectedEnv) {
 		return (
 			<div className="d-flex flex-column align-items-center justify-content-center welcome-container">
@@ -122,6 +171,13 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					</div>
 				</div>
 			</div>
+
+			<div className="d-flex justify-content-between align-items-center mb-3">
+				<div className="text-muted small">
+					Showing {indexOfFirstTask + 1}-{Math.min(indexOfLastTask, filteredTasks.length)} of {filteredTasks.length} tasks
+				</div>
+			</div>
+
 			<div className="row g-4">
 				{tasks.length === 0 && (
 					<div className="col-12">
@@ -146,7 +202,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					</div>
 				)}
 
-				{filteredTasks.map((task, index) => {
+				{currentTasks.map((task, index) => {
 					const taskIcons = {
 						note: 'fa-note-sticky',
 						checklist: 'fa-list-check',
@@ -231,6 +287,52 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					);
 				})}
 			</div>
+
+			{/* Pagination Controls */}
+			{filteredTasks.length > tasksPerPage && (
+				<div className="d-flex justify-content-center align-items-center gap-2 mt-5 pagination-container">
+					{/* Previous Button */}
+					<button
+						className={`btn pagination-btn pagination-arrow ${currentPage === 1 ? 'disabled' : ''}`}
+						onClick={() => handlePageChange(currentPage - 1)}
+						disabled={currentPage === 1}
+						aria-label="Previous page"
+					>
+						<i className="fa-solid fa-chevron-left"></i>
+					</button>
+
+					{/* Page Numbers */}
+					<div className="d-flex gap-2 pagination-numbers">
+						{getPageNumbers().map((pageNum, idx) => (
+							pageNum === '...' ? (
+								<span key={`ellipsis-${idx}`} className="pagination-ellipsis">
+									...
+								</span>
+							) : (
+								<button
+									key={pageNum}
+									className={`btn pagination-btn pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+									onClick={() => handlePageChange(pageNum)}
+									aria-label={`Page ${pageNum}`}
+									aria-current={currentPage === pageNum ? 'page' : undefined}
+								>
+									{pageNum}
+								</button>
+							)
+						))}
+					</div>
+
+					{/* Next Button */}
+					<button
+						className={`btn pagination-btn pagination-arrow ${currentPage === totalPages ? 'disabled' : ''}`}
+						onClick={() => handlePageChange(currentPage + 1)}
+						disabled={currentPage === totalPages}
+						aria-label="Next page"
+					>
+						<i className="fa-solid fa-chevron-right"></i>
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };
