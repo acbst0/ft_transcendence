@@ -93,3 +93,16 @@ class SudokuGame(models.Model):
 
     def __str__(self):
         return f"Sudoku for {self.circle.name}"
+
+class TicTacToeGame(models.Model):
+    circle = models.OneToOneField(Circle, related_name='tictactoe_game', on_delete=models.CASCADE)
+    board = models.JSONField(default=list)  # 3x3 grid
+    current_turn = models.CharField(max_length=1, default='X')
+    player_x = models.ForeignKey(User, related_name='tictactoe_x', on_delete=models.SET_NULL, null=True, blank=True)
+    player_o = models.ForeignKey(User, related_name='tictactoe_o', on_delete=models.SET_NULL, null=True, blank=True)
+    winner = models.CharField(max_length=1, null=True, blank=True)
+    is_draw = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"TicTacToe for {self.circle.name}"
