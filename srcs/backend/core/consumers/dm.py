@@ -52,7 +52,6 @@ class DMConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # Send notification to receiver
         await self.channel_layer.group_send(
             f'notifications_{self.target_user_id}',
             {

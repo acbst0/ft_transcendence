@@ -22,7 +22,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         self.user_id = self.scope['user'].id
         self.notification_group_name = f'notifications_{self.user_id}'
         
-        # Join notification group
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name

@@ -29,6 +29,5 @@ class TokenAuthMiddleware(BaseMiddleware):
                 
         except Exception as e:
             pass
-            pass
             
         return await super().__call__(scope, receive, send)

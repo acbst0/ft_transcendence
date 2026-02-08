@@ -50,7 +50,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
                 else:
-                    # Assigned to Everyone (if no specific assignees) - Notify all members except creator
                     for member in circle.members.all():
                         if member.id != self.request.user.id:
                             async_to_sync(channel_layer.group_send)(
@@ -67,7 +66,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
              elif serializer.instance.task_type in ['note', 'checklist']:
-                 # Notify all members about new note/checklist
                  for member in circle.members.all():
                     if member.id != self.request.user.id:
                         async_to_sync(channel_layer.group_send)(

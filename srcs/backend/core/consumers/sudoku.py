@@ -59,7 +59,6 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             value = data['value']
             is_mistake = data.get('is_mistake', False)
             
-            # Update DB
             new_mistakes = await self.update_game_cell(self.circle_id, row, col, value, is_mistake)
             
             await self.channel_layer.group_send(
