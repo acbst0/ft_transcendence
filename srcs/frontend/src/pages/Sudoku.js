@@ -7,26 +7,26 @@ const Sudoku = ({ circleId, showToast }) => {
 	const [initialBoard, setInitialBoard] = useState(Array(9).fill().map(() => Array(9).fill(0)));
 	const [solution, setSolution] = useState(null);
 	const [selectedCell, setSelectedCell] = useState(null);
-	const [mistakes, setMistakes] = useState(0); // This is local-only for now, arguably could be shared but let's keep it simple
+	const [mistakes, setMistakes] = useState(0);
 	const [isSolved, setIsSolved] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
-	const [gameDifficulty, setGameDifficulty] = useState('easy'); // Difficulty of the active game
-	const [nextDifficulty, setNextDifficulty] = useState('easy'); // Difficulty selected for the next game
+	const [gameDifficulty, setGameDifficulty] = useState('easy');
+	const [nextDifficulty, setNextDifficulty] = useState('easy');
 
 	const ws = useRef(null);
 
-	// WebSocket Connection
 	useEffect(() => {
 		if (!circleId) return;
 
 		const token = localStorage.getItem('token');
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const wsUrl = `${protocol}//${window.location.host}/ws/sudoku/${circleId}/?token=${token}`;
+		const host = window.location.host.replace(':3000', '');
+		const wsUrl = `${protocol}//${host}/ws/sudoku/${circleId}/?token=${token}`;
 
 		ws.current = new WebSocket(wsUrl);
 
 		ws.current.onopen = () => {
-			console.log("Sudoku WS Connected");
+			// Connected
 			setIsConnected(true);
 		};
 
@@ -39,31 +39,31 @@ const Sudoku = ({ circleId, showToast }) => {
 				setSolution(data.solution);
 				setIsSolved(data.is_solved);
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty); // Sync selector to current game initially
-				// If no game exists/empty board, maybe auto-start one? 
-				// For now let's wait for user to click New Game if empty.
-				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) {
-					// Optional: Auto start if empty
-				}
+				setNextDifficulty(data.difficulty);
+				setMistakes(data.mistakes || 0);
+				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) { }
 			} else if (data.type === 'board_update') {
 				setBoard(prev => {
 					const newBoard = prev.map(row => [...row]);
 					newBoard[data.row][data.col] = data.value;
 					return newBoard;
 				});
+				if (data.mistakes !== undefined) {
+					setMistakes(data.mistakes);
+				}
 			} else if (data.type === 'new_game') {
 				setBoard(data.board);
 				setInitialBoard(data.initial_board);
 				setSolution(data.solution);
 				setIsSolved(false);
-				setMistakes(0); // Reset mistakes on new game
+				setMistakes(0);
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty); // Sync selector? Optional, maybe keep user choice. Let's sync to show what everyone is playing.
+				setNextDifficulty(data.difficulty);
 			}
 		};
 
 		ws.current.onclose = () => {
-			console.log("Sudoku WS Closed");
+			// Silent
 			setIsConnected(false);
 		};
 
@@ -77,14 +77,14 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		const { solved, initial } = sudokuGenerator.generate(nextDifficulty);
 
-		// Send to server
 		ws.current.send(JSON.stringify({
 			type: 'new_game',
-			board: initial, // current board starts as initial
+			board: initial,
 			initial_board: initial,
 			solution: solved,
 			difficulty: nextDifficulty
 		}));
+		setMistakes(0);
 	}, [isConnected, nextDifficulty]);
 
 	const handleCellClick = (row, col) => {
@@ -95,32 +95,53 @@ const Sudoku = ({ circleId, showToast }) => {
 		if (!selectedCell || isSolved || !isConnected) return;
 		const { row, col } = selectedCell;
 
-		// Cannot edit initial cells
 		if (initialBoard && initialBoard[row][col] !== 0) return;
-
-		// Optimistic update? 
-		// Ideally we wait for server, but for responsiveness we can check locally if we have solution
-
-		// Logic:
-		// 1. Check valid/invalid against solution if we have it
+		let isMistake = false;
 		if (solution) {
 			if (num !== 0 && num !== solution[row][col]) {
+				isMistake = true;
+				// Optimistic update
 				setMistakes(prev => prev + 1);
-				// We still allow placing the wrong number? 
-				// The previous implementation allowed it but counted mistake.
 			}
 		}
 
-		// Send to server
 		ws.current.send(JSON.stringify({
 			type: 'update_cell',
 			row,
 			col,
-			value: num
+			value: num,
+			is_mistake: isMistake
 		}));
 	};
 
-	// Check win condition locally if board updates
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			if (!selectedCell) return;
+
+			if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				setSelectedCell(prev => ({ ...prev, row: Math.max(0, prev.row - 1) }));
+			} else if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				setSelectedCell(prev => ({ ...prev, row: Math.min(8, prev.row + 1) }));
+			} else if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				setSelectedCell(prev => ({ ...prev, col: Math.max(0, prev.col - 1) }));
+			} else if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				setSelectedCell(prev => ({ ...prev, col: Math.min(8, prev.col + 1) }));
+			}
+			else if (e.key >= '1' && e.key <= '9') {
+				handleNumberInput(parseInt(e.key));
+			} else if (e.key === 'Backspace' || e.key === 'Delete') {
+				handleNumberInput(0);
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [selectedCell, handleNumberInput]);
+
 	useEffect(() => {
 		if (solution && board && board.length > 0) {
 			let won = true;
@@ -157,41 +178,41 @@ const Sudoku = ({ circleId, showToast }) => {
 			<div className="row g-4 justify-content-center align-items-start">
 				<div className="col-12 col-lg-auto d-flex justify-content-center">
 					<div className="sudoku-board shadow-sm">
-					{board && board.length > 0 && board.map((row, rowIndex) => (
-						row.map((cell, colIndex) => {
-							const isInitial = initialBoard && initialBoard[rowIndex] && initialBoard[rowIndex][colIndex] !== 0;
-							const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
-							const isError = !isInitial && cell !== 0 && solution && cell !== solution[rowIndex][colIndex];
+						{board && board.length > 0 && board.map((row, rowIndex) => (
+							row.map((cell, colIndex) => {
+								const isInitial = initialBoard && initialBoard[rowIndex] && initialBoard[rowIndex][colIndex] !== 0;
+								const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
+								const isError = !isInitial && cell !== 0 && solution && cell !== solution[rowIndex][colIndex];
 
-							return (
-								<div
-									key={`${rowIndex}-${colIndex}`}
-									className={`cell 
+								return (
+									<div
+										key={`${rowIndex}-${colIndex}`}
+										className={`cell 
 										${isInitial ? 'initial' : ''} 
 										${isSelected ? 'selected' : ''}
 										${isError ? 'error' : ''}
 										${(colIndex + 1) % 3 === 0 && colIndex !== 8 ? 'cell-border-right' : ''}
 										${(rowIndex + 1) % 3 === 0 && rowIndex !== 8 ? 'cell-border-bottom' : ''}
 									`}
-									onClick={() => handleCellClick(rowIndex, colIndex)}
-								>
-									{cell !== 0 ? cell : ''}
-								</div>
-							);
-						})
-					))}
+										onClick={() => handleCellClick(rowIndex, colIndex)}
+									>
+										{cell !== 0 ? cell : ''}
+									</div>
+								);
+							})
+						))}
 					</div>
 				</div>
 
 				<div className="col-12 col-lg-auto d-flex justify-content-center">
 					<div className="card bg-body border-secondary shadow-sm sudoku-controls-card">
-					<div className="card-body p-3 d-flex flex-column gap-3">
-						<h6 className="card-title fw-bold mb-0 d-none d-lg-block">Controls</h6>
-						
-						<div className="sudoku-numpad-grid">
-							{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-								<button
-									key={num}
+						<div className="card-body p-3 d-flex flex-column gap-3">
+							<h6 className="card-title fw-bold mb-0 d-none d-lg-block">Controls</h6>
+
+							<div className="sudoku-numpad-grid">
+								{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+									<button
+										key={num}
 										className="btn btn-outline-secondary numpad-btn"
 										onClick={() => handleNumberInput(num)}
 									>
@@ -203,24 +224,24 @@ const Sudoku = ({ circleId, showToast }) => {
 								</button>
 							</div>
 
-						<div className="d-flex flex-column gap-2 w-100">
-							<div>
-								<label className="form-label small text-muted fw-bold">Difficulty</label>
-								<select
-									value={nextDifficulty}
-									onChange={(e) => setNextDifficulty(e.target.value)}
-									className="form-select border-secondary"
-								>
-									<option value="easy">Easy</option>
-									<option value="medium">Medium</option>
-									<option value="hard">Hard</option>
-								</select>
+							<div className="d-flex flex-column gap-2 w-100">
+								<div>
+									<label className="form-label small text-muted fw-bold">Difficulty</label>
+									<select
+										value={nextDifficulty}
+										onChange={(e) => setNextDifficulty(e.target.value)}
+										className="form-select border-secondary"
+									>
+										<option value="easy">Easy</option>
+										<option value="medium">Medium</option>
+										<option value="hard">Hard</option>
+									</select>
+								</div>
+								<button className="btn btn-primary w-100 py-1 fw-bold" onClick={startNewGame}>
+									New Game
+								</button>
 							</div>
-							<button className="btn btn-primary w-100 py-1 fw-bold" onClick={startNewGame}>
-								New Game
-							</button>
 						</div>
-					</div>
 					</div>
 				</div>
 			</div>

@@ -17,6 +17,7 @@ class DMConsumer(AsyncWebsocketConsumer):
             token_key = query_string.split('token=')[1].split('&')[0]
             self.user = await self.get_user_from_token(token_key)
         except Exception as e:
+            pass
             await self.close()
             return
 
@@ -51,7 +52,7 @@ class DMConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        print(f"DEBUG: Sending notification to target user {self.target_user_id}")
+        # Send notification to receiver
         await self.channel_layer.group_send(
             f'notifications_{self.target_user_id}',
             {

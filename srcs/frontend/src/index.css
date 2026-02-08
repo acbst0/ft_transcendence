@@ -1,5 +1,4 @@
 :root {
-  /* New Color Palette */
   --color-primary: #753696;
   --color-primary-light: #c993e6;
   --color-primary-pale: #dccae6;
@@ -10,9 +9,7 @@
   --color-bg-tint: #FDFBFE;
   --color-text-muted: #6b7280;
   --border-color: transparent;
-  /* Removed borders globally where possible */
 
-  /* Semantic Variables - Light Theme (Default) */
   --primary: var(--color-primary);
   --primary-hover: #5e2b7a;
   --secondary: var(--color-primary-light);
@@ -24,12 +21,10 @@
   --text-muted: var(--color-text-muted);
   --border: var(--border-color);
 
-  /* Soft UI Variables */
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
 
-  /* Pastel Surfaces */
   --surface-purple: rgba(117, 54, 150, 0.08);
   --surface-purple-strong: rgba(117, 54, 150, 0.15);
   --surface-green: rgba(131, 173, 108, 0.12);
@@ -38,12 +33,10 @@
   --surface-yellow-strong: rgba(245, 158, 11, 0.2);
 
   --shadow-sm: 0 4px 12px rgba(117, 54, 150, 0.05);
-  /* Tinted Shadow */
   --shadow-md: 0 8px 24px rgba(117, 54, 150, 0.08);
   --shadow-lg: 0 16px 40px rgba(117, 54, 150, 0.12);
   --font-main: 'Poppins', sans-serif;
 
-  /* Bootstrap Override */
   --bs-body-bg: var(--background);
   --bs-body-color: var(--text);
   --bs-primary: var(--primary);

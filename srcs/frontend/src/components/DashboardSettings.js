@@ -9,7 +9,6 @@ const DashboardSettings = ({
     return (
         <div className="container-fluid p-0">
             <div className="row g-4">
-                {/* Profile Settings Card */}
                 <div className="col-lg-6">
                     <div className="card h-100 shadow-none settings-card">
                         <div className="card-header bg-transparent border-bottom py-3" style={{ borderColor: 'var(--border)' }}>
@@ -70,7 +69,7 @@ const DashboardSettings = ({
                     </div>
                 </div>
 
-                {/* Circle Settings Card */}
+                
                 {selectedEnv && selectedEnv.admin && selectedEnv.admin.id === user.id && (
                     <div className="col-lg-6">
                         <div className="card h-100 shadow-none settings-card">

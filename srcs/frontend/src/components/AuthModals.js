@@ -33,8 +33,6 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 	};
 
 	const handleGoogleLogin = () => {
-		// Redirect to backend Google OAuth endpoint
-		// Using full protocol://host to ensure proper redirect
 		const backendUrl = window.location.origin;
 		window.location.href = `${backendUrl}/auth/login/google-oauth2/`;
 	};
@@ -78,7 +76,7 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 	);
 };
 
-export const RegisterModal = ({ isOpen, onClose }) => {
+export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 	const [username, setUsername] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -104,12 +102,9 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 			const data = await response.json();
 
 			if (response.ok) {
-				// Auto login or ask to login? let's auto login or close
-				// For now just close and show success (or could reuse handleLogin logic)
 				onClose();
-				alert('Account created! Please login.');
+				if (onSuccess) onSuccess('Account created! Please login.');;
 			} else {
-				// quick error parsing
 				let msg = 'Registration failed';
 				if (data.username) msg = `Username: ${data.username[0]}`;
 				else if (data.email) msg = `Email: ${data.email[0]}`;
@@ -123,8 +118,6 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 	};
 
 	const handleGoogleRegister = () => {
-		// Google OAuth works for both login and register
-		// The backend will create a new user if it doesn't exist
 		const backendUrl = window.location.origin;
 		window.location.href = `${backendUrl}/auth/login/google-oauth2/`;
 	};
@@ -172,7 +165,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 							style={{ width: 'auto', margin: 0 }}
 						/>
 						<span>
-							I have read and accept the <a href="#" onClick={(e) => { e.preventDefault(); alert('KVKK dummy text...'); }} style={{ color: '#4facfe' }}>KVKK terms</a>.
+							I have read and accept the <a href="#" onClick={(e) => { e.preventDefault(); alert('KVKK dummy text...'); }} style={{ color: '#390f50' }}>KVKK terms</a>.
 						</span>
 					</label>
 				</div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BootstrapModal from './BootstrapModal';
 import './DashboardModals.css';
+import Sudoku from '../pages/Sudoku';
 
 export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 	const [name, setName] = useState('');
@@ -28,7 +29,7 @@ export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => 
 				showToast('Error creating circle: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -147,7 +148,7 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 				showToast('Error creating task: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -322,6 +323,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 	const [editTitle, setEditTitle] = useState('');
 	const [editDescription, setEditDescription] = useState('');
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
 	const [editChecklistItems, setEditChecklistItems] = useState([]);
 	const [editAssignees, setEditAssignees] = useState([]);
 
@@ -398,7 +400,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 			} else {
 				showToast('Failed to update task', 'Error');
 			}
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const toggleChecklistItem = async (itemId) => {
@@ -431,12 +433,12 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 				body: JSON.stringify({ status: newStatus })
 			});
 			if (res.ok) onUpdate();
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const canComplete = task.task_type === 'assignment' && task.status !== 'done' && (!task.assigned_to || task.assigned_to.id === user.id);
 	const canDelete = task.created_by.id === user.id;
-	const canEdit = true; // Allow all members to edit
+	const canEdit = true; 
 
 	return (
 		<>
@@ -599,7 +601,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 									)}
 									{canComplete && (
 										<button
-											onClick={toggleTaskStatus}
+											onClick={() => setShowCompleteConfirm(true)}
 											className="btn btn-success btn-sm task-action-btn"
 										>
 											<i className="fa-solid fa-check me-1"></i>
@@ -621,6 +623,15 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 				message="Are you sure you want to delete this item? This action cannot be undone."
 				confirmText="Delete"
 				isDestructive={true}
+			/>
+
+			<ConfirmationModal
+				isOpen={showCompleteConfirm}
+				onClose={() => setShowCompleteConfirm(false)}
+				onConfirm={toggleTaskStatus}
+				title="Complete Task"
+				message="Are you sure you want to complete this task?"
+				confirmText="Complete"
 			/>
 		</>
 	);
@@ -676,7 +687,7 @@ export const JoinCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 				showToast('Invalid Code', 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 		}
 	};
 
@@ -801,7 +812,6 @@ export const MembersModal = ({ isOpen, onClose, members, currentUserId, adminId,
 	);
 };
 
-import Sudoku from '../pages/Sudoku';
 
 export const SudokuModal = ({ isOpen, onClose, circleId }) => {
 	return (

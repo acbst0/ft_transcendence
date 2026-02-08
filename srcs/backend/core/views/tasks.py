@@ -36,7 +36,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                 if assignees.exists():
                      for assignee in assignees:
                         if assignee != self.request.user:
-                            print(f"DEBUG: Sending assignment notification to {assignee.id}")
                             async_to_sync(channel_layer.group_send)(
                                 f'notifications_{assignee.id}',
                                 {
@@ -51,7 +50,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
                 else:
-                    print(f"DEBUG: Task assigned to Everyone (no specific assignees) in circle {circle.id}")
+                    # Assigned to Everyone (if no specific assignees) - Notify all members except creator
                     for member in circle.members.all():
                         if member.id != self.request.user.id:
                             async_to_sync(channel_layer.group_send)(
@@ -68,7 +67,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
              elif serializer.instance.task_type in ['note', 'checklist']:
-                 print(f"DEBUG: New {serializer.instance.task_type} created in circle {circle.id}")
+                 # Notify all members about new note/checklist
                  for member in circle.members.all():
                     if member.id != self.request.user.id:
                         async_to_sync(channel_layer.group_send)(
@@ -85,7 +84,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                             }
                         )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     def perform_destroy(self, instance):
         if instance.created_by != self.request.user:
@@ -100,7 +99,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                  {'type': 'task_update', 'action': 'delete'}
              )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     def perform_update(self, serializer):
         instance = self.get_object()
@@ -119,7 +118,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         if added_assignees:
              for assignee in added_assignees:
                  if assignee != self.request.user:
-                     print(f"DEBUG: Task assigned (added) to {assignee.username}")
                      try:
                          channel_layer = get_channel_layer()
                          async_to_sync(channel_layer.group_send)(
@@ -136,10 +134,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                             }
                         )
                      except Exception as e:
-                         print(f"Error sending assignment notification: {e}")
+                         pass
 
         if updated_instance.status == 'done' and old_status != 'done':
-             print(f"DEBUG: Task {updated_instance.id} completed")
              try:
                  channel_layer = get_channel_layer()
                  for member in updated_instance.circle.members.all():
@@ -158,7 +155,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                             }
                         )
              except Exception as e:
-                 print(f"Error sending completion notification: {e}")
+                 pass
         
         try:
              channel_layer = get_channel_layer()
@@ -167,7 +164,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                  {'type': 'task_update', 'action': 'update'}
              )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     @action(detail=True, methods=['post'])
     def toggle_check(self, request, pk=None):
@@ -184,7 +181,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                      {'type': 'task_update', 'action': 'update'}
                  )
             except Exception as e:
-                 print(f"Error sending signal: {e}")
+                pass
             
             return Response({'status': 'toggled', 'is_checked': item.is_checked})
         except ChecklistItem.DoesNotExist:

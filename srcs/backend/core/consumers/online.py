@@ -12,22 +12,17 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             try:
                 query_string = self.scope['query_string'].decode()
-                print(f"DEBUG: Presence connection attempt. Query: {query_string}")
                 if 'token=' in query_string:
                     token_key = query_string.split('token=')[1].split('&')[0]
                     self.user = await self.get_user_from_token(token_key)
-                    print(f"DEBUG: Presence token found user: {self.user}")
             except Exception as e:
-                print(f"DEBUG: Presence auth error: {e}")
                 pass
 
         if not self.user or self.user.is_anonymous:
-            print("DEBUG: Presence rejected - Anonymous")
             await self.close()
             return
             
         self.room_group_name = 'global_presence'
-        print(f"DEBUG: User {self.user} joining global_presence")
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
@@ -85,9 +80,8 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             profile, created = UserProfile.objects.get_or_create(user=self.user)
             profile.is_online = is_online
             profile.save()
-            print(f"DEBUG: Set {self.user.username} online={is_online}")
         except Exception as e:
-            print(f"DEBUG: Error setting online status: {e}")
+            pass
 
     @database_sync_to_async
     def get_online_users(self):

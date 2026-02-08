@@ -11,7 +11,19 @@ localhost {
         reverse_proxy backend:8000
     }
 
-    handle /ws/* {
+    handle /ws/chat/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/notifications/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/sudoku/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/online/* {
         reverse_proxy backend:8000
     }
 
@@ -35,7 +47,19 @@ localhost {
         reverse_proxy backend:8000
     }
 
-    handle /ws/* {
+    handle /ws/chat/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/notifications/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/sudoku/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/online/* {
         reverse_proxy backend:8000
     }
 
@@ -57,7 +81,19 @@ dashboard.planora.com {
         reverse_proxy backend:8000
     }
 
-    handle /ws/* {
+    handle /ws/chat/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/notifications/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/sudoku/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/online/* {
         reverse_proxy backend:8000
     }
 

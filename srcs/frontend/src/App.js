@@ -4,19 +4,31 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import { LoginModal, RegisterModal } from './components/AuthModals';
-
+import Notification from './components/Notification'; 
+import './theme.css';
 
 function MainLayout() {
 	const [isLoginOpen, setIsLoginOpen] = useState(false);
 	const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+	
+	const [notification, setNotification] = useState({ message: '', type: '' });
+
 	const navigate = useNavigate();
+
+	const showNotify = (message, type = 'success') => {
+		setNotification({ message, type });
+	};
 
 	const handleLoginSuccess = () => {
 		setIsLoginOpen(false);
 		navigate('/dashboard');
 	};
 
-	// Handle OAuth callback
+	const handleRegisterSuccess = () => {
+		setIsRegisterOpen(false);
+		showNotify('Account created successfully! Please login.', 'success');
+	};
+
 	React.useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		const oauthToken = urlParams.get('oauth_token');
@@ -25,35 +37,45 @@ function MainLayout() {
 		const oauthError = urlParams.get('oauth_error');
 
 		if (oauthToken && userId && username) {
-			// Save OAuth token and user data
 			localStorage.setItem('token', oauthToken);
 			localStorage.setItem('user', JSON.stringify({ id: userId, username: username }));
-
-			// Clean URL and redirect to dashboard
 			window.history.replaceState({}, document.title, '/');
 			navigate('/dashboard');
 		} else if (oauthError) {
-			alert('Google authentication failed: ' + oauthError);
+			showNotify('Google authentication failed: ' + oauthError, 'error');
 			window.history.replaceState({}, document.title, '/');
 		}
 	}, [navigate]);
 
 	return (
 		<>
+			{}
+			<Notification 
+				message={notification.message} 
+				type={notification.type} 
+				onClose={() => setNotification({ message: '', type: '' })} 
+			/>
+
 			<Navbar
 				onLoginClick={() => setIsLoginOpen(true)}
 				onRegisterClick={() => setIsRegisterOpen(true)}
 			/>
-			<Home />
+			
+			<Routes>
+				<Route path="/" element={<Home />} />
+				<Route path="/dashboard" element={<Dashboard />} />
+			</Routes>
 
 			<LoginModal
 				isOpen={isLoginOpen}
 				onClose={() => setIsLoginOpen(false)}
 				onSuccess={handleLoginSuccess}
 			/>
+			
 			<RegisterModal
 				isOpen={isRegisterOpen}
 				onClose={() => setIsRegisterOpen(false)}
+				onSuccess={handleRegisterSuccess} 
 			/>
 		</>
 	);
@@ -61,13 +83,13 @@ function MainLayout() {
 
 function App() {
 	return (
-		<Router>
-			<div className="App">
-				<Routes>
-					<Route path="/" element={<MainLayout />} />
-					<Route path="/dashboard" element={<Dashboard />} />
-				</Routes>
-			</div>
+		<Router
+			future={{
+				v7_startTransition: true,
+				v7_relativeSplatPath: true
+			}}
+		>
+			<MainLayout />
 		</Router>
 	);
 }

@@ -13,24 +13,22 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 token_key = query_string.split('token=')[1].split('&')[0]
                 self.scope['user'] = await self.get_user_from_token(token_key)
         except Exception as e:
-            print(f"DEBUG: Error processing token: {e}")
+            pass
 
         if not self.scope['user'].is_authenticated:
-            print(f"DEBUG: Notification connection rejected - Unauthenticated")
             await self.close()
             return
         
         self.user_id = self.scope['user'].id
         self.notification_group_name = f'notifications_{self.user_id}'
         
-        print(f"DEBUG: User {self.user_id} connecting to notifications")
+        # Join notification group
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name
         )
         
         await self.accept()
-        print(f"DEBUG: User {self.user_id} connected to notifications channel: {self.notification_group_name}")
 
     async def disconnect(self, close_code):
         if hasattr(self, 'notification_group_name'):
@@ -38,7 +36,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 self.notification_group_name,
                 self.channel_name
             )
-            print(f"DEBUG: User {getattr(self, 'user_id', 'Unknown')} disconnected from notifications")
 
     @database_sync_to_async
     def get_user_from_token(self, token_key):
@@ -63,7 +60,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def send_notification(self, event):
         """Send notification to user"""
-        print(f"DEBUG: Sending notification to user {self.user_id}: {event}")
         notification = event.get('notification', event)
         data_to_send = notification if 'notification' in event else event
         
