@@ -11,7 +11,6 @@ class SudokuConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'sudoku_{self.circle_id}'
         self.user = self.scope.get("user")
 
-        # Basic Auth check (Token auth fallback if anonymous)
         if not self.user or self.user.is_anonymous:
              try:
                 query_string = self.scope['query_string'].decode()
@@ -25,20 +24,15 @@ class SudokuConsumer(AsyncWebsocketConsumer):
              await self.close()
              return
 
-        # Check membership
         is_member = await self.check_membership(self.user, self.circle_id)
         if not is_member:
             await self.close()
             return
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
 
-        # Send current game state
         game_state = await self.get_game_state(self.circle_id)
         if game_state:
              await self.send(text_data=json.dumps({
@@ -53,10 +47,7 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -68,10 +59,8 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             value = data['value']
             is_mistake = data.get('is_mistake', False)
             
-            # Update DB
             new_mistakes = await self.update_game_cell(self.circle_id, row, col, value, is_mistake)
             
-            # Broadcast
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {

@@ -7,7 +7,7 @@ from core.serializers import UserSerializer
 
 class ProfileView(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser) # Support file upload
+    parser_classes = (MultiPartParser, FormParser)
 
     @action(detail=False, methods=['get', 'put', 'patch'])
     def me(self, request):
@@ -17,7 +17,6 @@ class ProfileView(viewsets.ViewSet):
             return Response(serializer.data)
         
         elif request.method in ['PUT', 'PATCH']:
-            # Update User fields
             if 'username' in request.data:
                 user.username = request.data['username']
             if 'email' in request.data:
@@ -26,7 +25,6 @@ class ProfileView(viewsets.ViewSet):
                 user.set_password(request.data['password'])
             user.save()
             
-            # Update Profile Avatar
             if 'remove_avatar' in request.data and request.data['remove_avatar'] == 'true':
                  profile, created = UserProfile.objects.get_or_create(user=user)
                  profile.avatar.delete(save=False)

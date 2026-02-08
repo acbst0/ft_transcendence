@@ -39,11 +39,8 @@ class CircleViewSet(viewsets.ModelViewSet):
             if request.user in circle.members.all():
                 return Response({'status': 'already member', 'circle_id': circle.id})
             
-            # Notify existing members before adding (or after? usually after to include correct count/list logic elsewhere, but notification is "New member joined")
-            # Let's add first, then notify others.
             circle.members.add(request.user)
             
-            # Send Notification
             channel_layer = get_channel_layer()
             for member in circle.members.all():
                 if member.id != request.user.id:
@@ -52,7 +49,7 @@ class CircleViewSet(viewsets.ModelViewSet):
                         {
                             'type': 'send_notification',
                             'notification': {
-                                'type': 'circle_message', # Reusing type or creating 'member_joined' if frontend handles it
+                                'type': 'circle_message',
                                 'sender': request.user.username,
                                 'circle_id': circle.id,
                                 'task_id': None,
@@ -73,7 +70,6 @@ class CircleViewSet(viewsets.ModelViewSet):
              
         circle.members.add(request.user)
         
-        # Send Notification
         channel_layer = get_channel_layer()
         for member in circle.members.all():
             if member.id != request.user.id:

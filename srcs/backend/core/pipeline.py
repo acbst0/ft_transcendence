@@ -9,9 +9,6 @@ def create_user_profile(backend, user, response, *args, **kwargs):
     from core.models import UserProfile
     
     if user and not hasattr(user, 'profile'):
-        UserProfile.objects.get_or_create(
-            user=user,
-            defaults={'kvkk_accepted': True}  # OAuth users auto-accept
-        )
+        UserProfile.objects.get_or_create(user=user, defaults={'kvkk_accepted': True})
     
     return {'user': user}

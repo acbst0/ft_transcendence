@@ -11,13 +11,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        # Filter by circle_id if provided
         queryset = Task.objects.all().order_by('-created_at')
         circle_id = self.request.query_params.get('circle_id')
         if circle_id:
             queryset = queryset.filter(circle_id=circle_id)
         
-        # Security: Only show tasks from circles I am a member of
         user_circle_ids = self.request.user.circles.values_list('id', flat=True)
         return queryset.filter(circle__id__in=user_circle_ids)
 
@@ -26,7 +24,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         circle = Circle.objects.get(id=circle_id)
         serializer.save(created_by=self.request.user, circle=circle)
         
-        # Signal Update
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
@@ -34,7 +31,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                  {'type': 'task_update', 'action': 'create'}
              )
              
-             # Notify assignee(s)
              if serializer.instance.task_type == 'assignment':
                 assignees = serializer.instance.assignees.all()
                 if assignees.exists():
@@ -54,7 +50,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
                 else:
-                    # Assigned to Everyone (if no specific assignees) - Notify all members except creator
                     for member in circle.members.all():
                         if member.id != self.request.user.id:
                             async_to_sync(channel_layer.group_send)(
@@ -71,7 +66,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                                 }
                             )
              elif serializer.instance.task_type in ['note', 'checklist']:
-                 # Notify all members about new note/checklist
                  for member in circle.members.all():
                     if member.id != self.request.user.id:
                         async_to_sync(channel_layer.group_send)(
@@ -96,7 +90,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         circle_id = instance.circle.id
         instance.delete()
         
-        # Signal Update
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
@@ -108,18 +101,15 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         instance = self.get_object()
-        # Track changes
         old_assignees = set(instance.assignees.all())
         old_status = instance.status
 
-        # If updating status, check if user is assigned
         if serializer.validated_data.get('status'):
             if instance.task_type == 'assignment' and instance.assignees.exists() and self.request.user not in instance.assignees.all():
                 raise permissions.PermissionDenied("Only the assigned user can update the status of this task.")
         
         updated_instance = serializer.save()
         
-        # 1. Check for Assignment Change
         new_assignees = set(updated_instance.assignees.all())
         added_assignees = new_assignees - old_assignees
         
@@ -144,7 +134,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                      except Exception as e:
                          pass
 
-        # 2. Check for Completion
         if updated_instance.status == 'done' and old_status != 'done':
              try:
                  channel_layer = get_channel_layer()
@@ -166,7 +155,6 @@ class TaskViewSet(viewsets.ModelViewSet):
              except Exception as e:
                  pass
         
-        # Signal Update
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
@@ -184,7 +172,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             item.is_checked = not item.is_checked
             item.save()
             
-            # Signal Update
             try:
                  channel_layer = get_channel_layer()
                  async_to_sync(channel_layer.group_send)(

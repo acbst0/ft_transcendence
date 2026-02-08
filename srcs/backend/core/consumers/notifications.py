@@ -7,7 +7,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time notifications"""
     
     async def connect(self):
-        # Extract token from query string
         try:
             query_string = self.scope['query_string'].decode()
             if 'token=' in query_string:
@@ -23,7 +22,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         self.user_id = self.scope['user'].id
         self.notification_group_name = f'notifications_{self.user_id}'
         
-        # Join notification group
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name
@@ -32,7 +30,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave notification group
         if hasattr(self, 'notification_group_name'):
             await self.channel_layer.group_discard(
                 self.notification_group_name,
@@ -52,7 +49,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             
-            # Process notification here if needed
             await self.send(text_data=json.dumps({
                 'status': 'received'
             }))
@@ -64,16 +60,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def send_notification(self, event):
         """Send notification to user"""
         notification = event.get('notification', event)
-        # If the event itself contains the data we need, use it. 
-        # The 'event' dict comes from group_send. 
-        # Conventionally, we might pass 'notification' key.
-        
-        # If event has 'data', use that.
         data_to_send = notification if 'notification' in event else event
         
-        # Clean up the event type wrapper if present
         if 'type' in data_to_send and data_to_send['type'] == 'send_notification':
-             # It's the wrapper, let's look for payload
              pass
 
         await self.send(text_data=json.dumps({

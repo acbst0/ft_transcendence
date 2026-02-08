@@ -83,9 +83,9 @@ class DirectMessage(models.Model):
 
 class SudokuGame(models.Model):
     circle = models.OneToOneField(Circle, related_name='sudoku_game', on_delete=models.CASCADE)
-    board = models.JSONField(default=list)  # Current 9x9 grid
-    initial_board = models.JSONField(default=list)  # Initial 9x9 grid
-    solution = models.JSONField(default=list) # Solution grid
+    board = models.JSONField(default=list)
+    initial_board = models.JSONField(default=list)
+    solution = models.JSONField(default=list)
     difficulty = models.CharField(max_length=20, default='easy')
     is_solved = models.BooleanField(default=False)
     mistakes = models.IntegerField(default=0)
