@@ -7,11 +7,11 @@ const Sudoku = ({ circleId, showToast }) => {
 	const [initialBoard, setInitialBoard] = useState(Array(9).fill().map(() => Array(9).fill(0)));
 	const [solution, setSolution] = useState(null);
 	const [selectedCell, setSelectedCell] = useState(null);
-	const [mistakes, setMistakes] = useState(0);
+	const [mistakes, setMistakes] = useState(0); 
 	const [isSolved, setIsSolved] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
-	const [gameDifficulty, setGameDifficulty] = useState('easy');
-	const [nextDifficulty, setNextDifficulty] = useState('easy');
+	const [gameDifficulty, setGameDifficulty] = useState('easy'); 
+	const [nextDifficulty, setNextDifficulty] = useState('easy'); 
 
 	const ws = useRef(null);
 
@@ -20,8 +20,7 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		const token = localStorage.getItem('token');
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host = window.location.host.replace(':3000', '');
-		const wsUrl = `${protocol}//${host}/ws/sudoku/${circleId}/?token=${token}`;
+		const wsUrl = `${protocol}//${window.location.host}/ws/sudoku/${circleId}/?token=${token}`;
 
 		ws.current = new WebSocket(wsUrl);
 
@@ -39,24 +38,20 @@ const Sudoku = ({ circleId, showToast }) => {
 				setSolution(data.solution);
 				setIsSolved(data.is_solved);
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty);
-				setMistakes(data.mistakes || 0);
-				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) { }
+				setNextDifficulty(data.difficulty); 
+				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) {}
 			} else if (data.type === 'board_update') {
 				setBoard(prev => {
 					const newBoard = prev.map(row => [...row]);
 					newBoard[data.row][data.col] = data.value;
 					return newBoard;
 				});
-				if (data.mistakes !== undefined) {
-					setMistakes(data.mistakes);
-				}
 			} else if (data.type === 'new_game') {
 				setBoard(data.board);
 				setInitialBoard(data.initial_board);
 				setSolution(data.solution);
 				setIsSolved(false);
-				setMistakes(0);
+				setMistakes(0); 
 				setGameDifficulty(data.difficulty);
 				setNextDifficulty(data.difficulty);
 			}
@@ -79,12 +74,11 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		ws.current.send(JSON.stringify({
 			type: 'new_game',
-			board: initial,
+			board: initial, 
 			initial_board: initial,
 			solution: solved,
 			difficulty: nextDifficulty
 		}));
-		setMistakes(0);
 	}, [isConnected, nextDifficulty]);
 
 	const handleCellClick = (row, col) => {
@@ -96,11 +90,8 @@ const Sudoku = ({ circleId, showToast }) => {
 		const { row, col } = selectedCell;
 
 		if (initialBoard && initialBoard[row][col] !== 0) return;
-		let isMistake = false;
 		if (solution) {
 			if (num !== 0 && num !== solution[row][col]) {
-				isMistake = true;
-				// Optimistic update
 				setMistakes(prev => prev + 1);
 			}
 		}
@@ -109,8 +100,7 @@ const Sudoku = ({ circleId, showToast }) => {
 			type: 'update_cell',
 			row,
 			col,
-			value: num,
-			is_mistake: isMistake
+			value: num
 		}));
 	};
 

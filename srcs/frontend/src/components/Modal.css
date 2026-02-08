@@ -67,15 +67,3 @@
 		opacity: 1;
 	}
 }
-
-@media (max-width: 480px) {
-    .modal-container {
-        width: 95%;
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-    .modal-header h2 {
-        font-size: 20px;
-    }
-}

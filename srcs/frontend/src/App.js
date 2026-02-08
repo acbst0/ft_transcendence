@@ -11,10 +11,12 @@ function MainLayout() {
 	const [isLoginOpen, setIsLoginOpen] = useState(false);
 	const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 	
+	// Bildirim için state tanımlıyoruz
 	const [notification, setNotification] = useState({ message: '', type: '' });
 
 	const navigate = useNavigate();
 
+	// Bildirimi göstermek için yardımcı fonksiyon
 	const showNotify = (message, type = 'success') => {
 		setNotification({ message, type });
 	};
@@ -24,6 +26,7 @@ function MainLayout() {
 		navigate('/dashboard');
 	};
 
+	// Kayıt başarılı olduğunda çalışacak fonksiyon
 	const handleRegisterSuccess = () => {
 		setIsRegisterOpen(false);
 		showNotify('Account created successfully! Please login.', 'success');
