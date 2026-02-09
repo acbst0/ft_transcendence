@@ -11,13 +11,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        # Filter by circle_id if provided
-        queryset = Task.objects.all()
+        queryset = Task.objects.all().order_by('-created_at')
         circle_id = self.request.query_params.get('circle_id')
         if circle_id:
             queryset = queryset.filter(circle_id=circle_id)
         
-        # Security: Only show tasks from circles I am a member of
         user_circle_ids = self.request.user.circles.values_list('id', flat=True)
         return queryset.filter(circle__id__in=user_circle_ids)
 
@@ -26,15 +24,65 @@ class TaskViewSet(viewsets.ModelViewSet):
         circle = Circle.objects.get(id=circle_id)
         serializer.save(created_by=self.request.user, circle=circle)
         
-        # Signal Update
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
                  f'chat_{circle.id}',
                  {'type': 'task_update', 'action': 'create'}
              )
+             
+             if serializer.instance.task_type == 'assignment':
+                assignees = serializer.instance.assignees.all()
+                if assignees.exists():
+                     for assignee in assignees:
+                        if assignee != self.request.user:
+                            async_to_sync(channel_layer.group_send)(
+                                f'notifications_{assignee.id}',
+                                {
+                                    'type': 'send_notification',
+                                    'notification': {
+                                        'type': 'task_assigned',
+                                        'sender': self.request.user.username,
+                                        'circle_id': circle.id,
+                                        'task_id': serializer.instance.id,
+                                        'message': f"Assigned you to task: {serializer.instance.title}"
+                                    }
+                                }
+                            )
+                else:
+                    for member in circle.members.all():
+                        if member.id != self.request.user.id:
+                            async_to_sync(channel_layer.group_send)(
+                                f'notifications_{member.id}',
+                                {
+                                    'type': 'send_notification',
+                                    'notification': {
+                                        'type': 'task_assigned',
+                                        'sender': self.request.user.username,
+                                        'circle_id': circle.id,
+                                        'task_id': serializer.instance.id,
+                                        'message': f"Assigned everyone to task: {serializer.instance.title}"
+                                    }
+                                }
+                            )
+             elif serializer.instance.task_type in ['note', 'checklist']:
+                 for member in circle.members.all():
+                    if member.id != self.request.user.id:
+                        async_to_sync(channel_layer.group_send)(
+                            f'notifications_{member.id}',
+                            {
+                                'type': 'send_notification',
+                                'notification': {
+                                    'type': f'{serializer.instance.task_type}_created',
+                                    'sender': self.request.user.username,
+                                    'circle_id': circle.id,
+                                    'task_id': serializer.instance.id,
+                                    'message': f"New {serializer.instance.task_type}: {serializer.instance.title}"
+                                }
+                            }
+                        )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     def perform_destroy(self, instance):
         if instance.created_by != self.request.user:
@@ -42,7 +90,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         circle_id = instance.circle.id
         instance.delete()
         
-        # Signal Update
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
@@ -50,17 +97,64 @@ class TaskViewSet(viewsets.ModelViewSet):
                  {'type': 'task_update', 'action': 'delete'}
              )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     def perform_update(self, serializer):
         instance = self.get_object()
-        # If completing an assignment, check if user is assigned
-        if serializer.validated_data.get('status') == 'done':
-            if instance.task_type == 'assignment' and instance.assigned_to and instance.assigned_to != self.request.user:
-                raise permissions.PermissionDenied("Only the assigned user can complete this task.")
-        serializer.save()
+        old_assignees = set(instance.assignees.all())
+        old_status = instance.status
+
+        if serializer.validated_data.get('status'):
+            if instance.task_type == 'assignment' and instance.assignees.exists() and self.request.user not in instance.assignees.all():
+                raise permissions.PermissionDenied("Only the assigned user can update the status of this task.")
         
-        # Signal Update
+        updated_instance = serializer.save()
+        
+        new_assignees = set(updated_instance.assignees.all())
+        added_assignees = new_assignees - old_assignees
+        
+        if added_assignees:
+             for assignee in added_assignees:
+                 if assignee != self.request.user:
+                     try:
+                         channel_layer = get_channel_layer()
+                         async_to_sync(channel_layer.group_send)(
+                            f'notifications_{assignee.id}',
+                            {
+                                'type': 'send_notification',
+                                'notification': {
+                                    'type': 'task_assigned',
+                                    'sender': self.request.user.username,
+                                    'circle_id': updated_instance.circle.id,
+                                    'task_id': updated_instance.id,
+                                    'message': f"Assigned you to task: {updated_instance.title}"
+                                }
+                            }
+                        )
+                     except Exception as e:
+                         pass
+
+        if updated_instance.status == 'done' and old_status != 'done':
+             try:
+                 channel_layer = get_channel_layer()
+                 for member in updated_instance.circle.members.all():
+                    if member.id != self.request.user.id:
+                        async_to_sync(channel_layer.group_send)(
+                            f'notifications_{member.id}',
+                            {
+                                'type': 'send_notification',
+                                'notification': {
+                                    'type': 'task_completed',
+                                    'sender': self.request.user.username,
+                                    'circle_id': updated_instance.circle.id,
+                                    'task_id': updated_instance.id,
+                                    'message': f"Completed task: {updated_instance.title}"
+                                }
+                            }
+                        )
+             except Exception as e:
+                 pass
+        
         try:
              channel_layer = get_channel_layer()
              async_to_sync(channel_layer.group_send)(
@@ -68,7 +162,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                  {'type': 'task_update', 'action': 'update'}
              )
         except Exception as e:
-             print(f"Error sending signal: {e}")
+            pass
 
     @action(detail=True, methods=['post'])
     def toggle_check(self, request, pk=None):
@@ -78,7 +172,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             item.is_checked = not item.is_checked
             item.save()
             
-            # Signal Update
             try:
                  channel_layer = get_channel_layer()
                  async_to_sync(channel_layer.group_send)(
@@ -86,7 +179,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                      {'type': 'task_update', 'action': 'update'}
                  )
             except Exception as e:
-                 print(f"Error sending signal: {e}")
+                pass
             
             return Response({'status': 'toggled', 'is_checked': item.is_checked})
         except ChecklistItem.DoesNotExist:

@@ -1,0 +1,39 @@
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    animation: slideInRight 0.3s ease forwards;
+    background: var(--auth-modal-bg);
+    color: var(--auth-text-color);
+    border-left: 6px solid #83ad6c;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.notification-close {
+    background: transparent;
+    border: none;
+    color: currentColor;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: auto;
+    opacity: 0.7;
+}

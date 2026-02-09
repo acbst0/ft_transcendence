@@ -5,6 +5,9 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from core.models import UserProfile
 from core.serializers import UserSerializer
+from django.shortcuts import redirect
+from django.views import View
+from django.contrib.auth import login
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -48,3 +51,19 @@ class LoginView(ObtainAuthToken):
             'user_id': user.pk,
             'username': user.username
         })
+
+class GoogleLoginCallback(View):
+    """
+    Custom callback view for Google OAuth
+    After successful OAuth, redirect to frontend with token
+    """
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        
+        if user.is_authenticated:
+            token, created = Token.objects.get_or_create(user=user)
+            
+            return redirect(f'/?oauth_token={token.key}&user_id={user.pk}&username={user.username}')
+        else:
+            return redirect('/?oauth_error=authentication_failed')
+

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BootstrapModal from './BootstrapModal';
 import './DashboardModals.css';
+import Sudoku from '../pages/Sudoku';
 
 export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 	const [name, setName] = useState('');
@@ -28,7 +29,7 @@ export const CreateCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => 
 				showToast('Error creating circle: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -78,7 +79,7 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 	const [taskType, setTaskType] = useState('assignment');
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
-	const [assignedTo, setAssignedTo] = useState('');
+	const [assignees, setAssignees] = useState([]);
 	const [checklistItems, setChecklistItems] = useState([]);
 	const [newItem, setNewItem] = useState('');
 
@@ -93,6 +94,18 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 		setChecklistItems(checklistItems.filter((_, i) => i !== index));
 	};
 
+	const toggleAssignee = (memberId) => {
+		if (memberId === 'everyone') {
+			setAssignees([]);
+		} else {
+			if (assignees.includes(memberId)) {
+				setAssignees(prev => prev.filter(id => id !== memberId));
+			} else {
+				setAssignees(prev => [...prev, memberId]);
+			}
+		}
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		const token = localStorage.getItem('token');
@@ -105,7 +118,10 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 		};
 
 		if (taskType === 'assignment') {
-			if (assignedTo) payload.assigned_to_id = assignedTo;
+			if (assignees.length > 0) {
+				payload.assignee_ids = assignees;
+				payload.assignee_id = assignees[0];
+			}
 		} else if (taskType === 'checklist') {
 			payload.checklist_items = checklistItems;
 		}
@@ -124,7 +140,7 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 				setTitle('');
 				setDescription('');
 				setChecklistItems([]);
-				setAssignedTo('');
+				setAssignees([]);
 				onSuccess();
 				onClose();
 			} else {
@@ -132,7 +148,7 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 				showToast('Error creating task: ' + (JSON.stringify(err) || res.statusText), 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 			showToast('Network error', 'Error');
 		}
 	};
@@ -143,8 +159,8 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 			setTitle('');
 			setDescription('');
 			setChecklistItems([]);
-			if (initialAssignee) setAssignedTo(initialAssignee);
-			else setAssignedTo('');
+			if (initialAssignee) setAssignees([Number(initialAssignee)]);
+			else setAssignees([]);
 		}
 	}, [isOpen, initialAssignee]);
 
@@ -192,16 +208,31 @@ export const CreateTaskModal = ({ isOpen, onClose, circleId, members, onSuccess,
 				{taskType === 'assignment' && members && (
 					<div>
 						<label className="form-label text-muted small fw-medium">Assign To (Optional)</label>
-						<select
-							className="form-select border-secondary modal-input"
-							value={assignedTo}
-							onChange={e => setAssignedTo(e.target.value)}
-						>
-							<option value="">-- Everyone --</option>
+						<div className="border border-secondary rounded p-2 modal-input" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+							<div
+								onClick={() => toggleAssignee('everyone')}
+								className={`p-2 mb-1 rounded cursor-pointer ${assignees.length === 0 ? 'bg-primary text-white' : 'text-muted'}`}
+							>
+								-- Everyone --
+							</div>
 							{members.map(m => (
-								<option key={m.id} value={m.id}>{m.username}</option>
+								<div key={m.id} onClick={() => toggleAssignee(m.id)} style={{
+									display: 'flex', alignItems: 'center', gap: '10px', padding: '6px',
+									cursor: 'pointer', borderRadius: '4px',
+									background: assignees.includes(m.id) ? 'rgba(99, 102, 241, 0.2)' : 'transparent'
+								}}>
+									<div style={{
+										width: '18px', height: '18px', borderRadius: '4px', border: '2px solid #6366f1',
+										display: 'grid', placeItems: 'center',
+										background: assignees.includes(m.id) ? '#6366f1' : 'transparent'
+									}}>
+										{assignees.includes(m.id) && <span style={{ fontSize: '12px', color: '#fff' }}>✓</span>}
+									</div>
+									<span style={{ color: '#cbd5e1' }}>{m.username}</span>
+								</div>
 							))}
-						</select>
+						</div>
+						<small style={{ color: '#64748b', marginTop: '4px', display: 'block' }}>Select specific members or choose Everyone.</small>
 					</div>
 				)}
 
@@ -292,19 +323,68 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 	const [editTitle, setEditTitle] = useState('');
 	const [editDescription, setEditDescription] = useState('');
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+	const [editChecklistItems, setEditChecklistItems] = useState([]);
+	const [editAssignees, setEditAssignees] = useState([]);
 
 	React.useEffect(() => {
 		if (task) {
 			setEditTitle(task.title);
 			setEditDescription(task.description);
+			setEditChecklistItems(task.checklist_items ? JSON.parse(JSON.stringify(task.checklist_items)) : []);
+			// Map assignees objects to IDs
+			let ids = [];
+			if (task.assignees) ids = task.assignees.map(u => u.id);
+			else if (task.assigned_to) ids = [task.assigned_to.id];
+
+			setEditAssignees(ids);
 			setIsEditing(false);
 		}
 	}, [task, isOpen]);
 
 	if (!task) return null;
 
+	const handleChecklistChange = (index, value) => {
+		const newItems = [...editChecklistItems];
+		newItems[index] = { ...newItems[index], content: value };
+		setEditChecklistItems(newItems);
+	};
+
+	const removeEditChecklistItem = (index) => {
+		setEditChecklistItems(editChecklistItems.filter((_, i) => i !== index));
+	};
+
+	const addEditChecklistItem = () => {
+		setEditChecklistItems([...editChecklistItems, { content: '', is_checked: false }]);
+	};
+
+	const toggleEditAssignee = (memberId) => {
+		if (memberId === 'everyone') {
+			setEditAssignees([]);
+		} else {
+			if (editAssignees.includes(memberId)) {
+				setEditAssignees(prev => prev.filter(id => id !== memberId));
+			} else {
+				setEditAssignees(prev => [...prev, memberId]);
+			}
+		}
+	};
+
 	const handleSave = async () => {
 		const token = localStorage.getItem('token');
+
+		const payload = {
+			title: editTitle,
+			description: editDescription
+		};
+
+		if (task.task_type === 'checklist') {
+			payload.checklist_items = editChecklistItems;
+		} else if (task.task_type === 'assignment') {
+			payload.assignee_ids = editAssignees;
+			if (editAssignees.length > 0) payload.assignee_id = editAssignees[0];
+		}
+
 		try {
 			const res = await fetch(`/api/tasks/${task.id}/`, {
 				method: 'PATCH',
@@ -312,10 +392,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 					'Content-Type': 'application/json',
 					'Authorization': `Token ${token}`
 				},
-				body: JSON.stringify({
-					title: editTitle,
-					description: editDescription
-				})
+				body: JSON.stringify(payload)
 			});
 			if (res.ok) {
 				onUpdate();
@@ -323,7 +400,7 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 			} else {
 				showToast('Failed to update task', 'Error');
 			}
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const toggleChecklistItem = async (itemId) => {
@@ -343,8 +420,9 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 		} catch (e) { console.error(e); }
 	};
 
-	const completeTask = async () => {
+	const toggleTaskStatus = async () => {
 		const token = localStorage.getItem('token');
+		const newStatus = task.status === 'done' ? 'todo' : 'done';
 		try {
 			const res = await fetch(`/api/tasks/${task.id}/`, {
 				method: 'PATCH',
@@ -352,153 +430,189 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 					'Content-Type': 'application/json',
 					'Authorization': `Token ${token}`
 				},
-				body: JSON.stringify({ status: 'done' })
+				body: JSON.stringify({ status: newStatus })
 			});
 			if (res.ok) onUpdate();
-		} catch (e) { console.error(e); }
+		} catch (e) { /* Silent */ }
 	};
 
 	const canComplete = task.task_type === 'assignment' && task.status !== 'done' && (!task.assigned_to || task.assigned_to.id === user.id);
 	const canDelete = task.created_by.id === user.id;
-	const canEdit = task.created_by.id === user.id;
+	const canEdit = true; 
 
 	return (
 		<>
 			<div className={`task-theme-${task.task_type}`}>
-			<BootstrapModal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit Item' : task.title}>
-				<div className="mb-3">
-					{isEditing ? (
-						<div className="d-flex flex-column gap-3">
-							<div>
-								<label className="form-label text-muted small fw-medium">Title</label>
-								<input
-									className="form-control border-secondary modal-input"
-									value={editTitle}
-									onChange={e => setEditTitle(e.target.value)}
-								/>
-							</div>
-							{task.task_type !== 'checklist' && (
+				<BootstrapModal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit Item' : task.title}>
+					<div className="mb-3">
+						{isEditing ? (
+							<div className="d-flex flex-column gap-3">
 								<div>
-									<label className="form-label text-muted small fw-medium">
-										{task.task_type === 'note' ? 'Content' : 'Description'}
-									</label>
-									<textarea
-										className="form-control border-secondary textarea-resize-v modal-input"
-										rows="5"
-										value={editDescription}
-										onChange={e => setEditDescription(e.target.value)}
+									<label className="form-label text-muted small fw-medium">Title</label>
+									<input
+										className="form-control border-secondary modal-input"
+										value={editTitle}
+										onChange={e => setEditTitle(e.target.value)}
 									/>
 								</div>
-							)}
-						</div>
-					) : (
-						<>
-							<div
-								className="badge text-capitalize mb-3 task-detail-badge"
-							>
-								<i className={`fa-solid ${task.task_type === 'note' ? 'fa-note-sticky' :
-									task.task_type === 'checklist' ? 'fa-list-check' : 'fa-clipboard-check'
-									} me-2`}></i>
-								{task.task_type} • {task.status.replace('_', ' ')}
-							</div>
-							{task.task_type === 'checklist' ? (
-								<div className="d-flex flex-column gap-2">
-									{task.checklist_items && task.checklist_items.map(item => (
-										<div
-											key={item.id}
-											onClick={() => toggleChecklistItem(item.id)}
-											className={`d-flex align-items-center gap-3 p-3 rounded border checklist-item-row cursor-pointer ${item.is_checked ? 'opacity-50 checked' : ''}`}
-										>
-											<div
-												className={`d-flex align-items-center justify-content-center rounded flex-shrink-0 checklist-checkbox ${item.is_checked ? 'checked' : ''}`}
-												style={{ width: '20px', height: '20px', borderRadius: '4px', border: '2px solid' }}
-											>
-												{item.is_checked && <i className="fa-solid fa-check text-white" style={{ fontSize: '10px' }}></i>}
-											</div>
-											<span className={`${item.is_checked ? 'text-decoration-line-through' : ''}`}>
-												{item.content}
-											</span>
+								{task.task_type === 'checklist' ? (
+									<div>
+										<label className="form-label text-muted small fw-medium">Checklist Items</label>
+										<div className="d-flex flex-column gap-2 mb-2">
+											{editChecklistItems.map((item, idx) => (
+												<div key={idx} className="d-flex gap-2">
+													<input
+														className="form-control modal-input"
+														value={item.content}
+														onChange={e => handleChecklistChange(idx, e.target.value)}
+														placeholder="Item content"
+														style={{ borderColor: 'rgba(117, 54, 150, 0.3)' }}
+													/>
+													<button
+														type="button"
+														onClick={() => removeEditChecklistItem(idx)}
+														className="btn btn-outline-danger"
+														style={{ borderRadius: '8px' }}
+													>
+														<i className="fa-solid fa-xmark"></i>
+													</button>
+												</div>
+											))}
 										</div>
-									))}
-								</div>
-							) : (
-								<div className="task-detail-description">
-									{task.description || <em className="text-muted">No details provided.</em>}
-								</div>
-							)}
-						</>
-					)}
-				</div>
-
-				<div className="task-detail-footer">
-					{!isEditing && (
-						<div>
-							{task.task_type === 'assignment' && (
-								<div className="small text-muted mb-1">
-									<i className="fa-solid fa-user me-2" style={{ fontSize: '11px' }}></i>
-									Assigned to: <span className="text-body fw-medium">
-										{task.assigned_to ? task.assigned_to.username : 'Everyone'}
-									</span>
-								</div>
-							)}
-							<div className="text-secondary task-meta-text">
-								<i className="fa-regular fa-user me-2" style={{ fontSize: '11px' }}></i>
-								Created by {task.created_by.username}
+										<button
+											type="button"
+											onClick={addEditChecklistItem}
+											className="btn btn-sm w-100 dashed-border-btn"
+										>
+											<i className="fa-solid fa-plus me-1"></i> Add New Item
+										</button>
+									</div>
+								) : (
+									task.task_type !== 'checklist' && (
+										<div>
+											<label className="form-label text-muted small fw-medium">
+												{task.task_type === 'note' ? 'Content' : 'Description'}
+											</label>
+											<textarea
+												className="form-control border-secondary textarea-resize-v modal-input"
+												rows="5"
+												value={editDescription}
+												onChange={e => setEditDescription(e.target.value)}
+											/>
+										</div>
+									)
+								)}
 							</div>
-						</div>
-					)}
-
-					<div className="d-flex gap-2 ms-auto">
-						{isEditing ? (
-							<>
-								<button
-									onClick={() => setIsEditing(false)}
-									className="btn btn-outline-secondary btn-sm task-action-btn"
-								>
-									Cancel
-								</button>
-								<button
-									onClick={handleSave}
-									className="btn btn-primary btn-sm task-action-btn"
-								>
-									<i className="fa-solid fa-check me-1"></i>
-									Save
-								</button>
-							</>
 						) : (
 							<>
-								{canEdit && (
-									<button
-										onClick={() => setIsEditing(true)}
-										className="btn btn-outline-primary btn-sm task-action-btn"
-									>
-										<i className="fa-solid fa-pen me-1"></i>
-										Edit
-									</button>
-								)}
-								{canDelete && (
-									<button
-										onClick={() => setShowDeleteConfirm(true)}
-										className="btn btn-outline-danger btn-sm task-action-btn"
-									>
-										<i className="fa-solid fa-trash me-1"></i>
-										Delete
-									</button>
-								)}
-								{canComplete && (
-									<button
-										onClick={completeTask}
-										className="btn btn-success btn-sm task-action-btn"
-									>
-										<i className="fa-solid fa-check me-1"></i>
-										Complete
-									</button>
+								<div
+									className="badge text-capitalize mb-3 task-detail-badge"
+								>
+									<i className={`fa-solid ${task.task_type === 'note' ? 'fa-note-sticky' :
+										task.task_type === 'checklist' ? 'fa-list-check' : 'fa-clipboard-check'
+										} me-2`}></i>
+									{task.task_type} • {task.status.replace('_', ' ')}
+								</div>
+								{task.task_type === 'checklist' ? (
+									<div className="d-flex flex-column gap-2">
+										{task.checklist_items && task.checklist_items.map(item => (
+											<div
+												key={item.id}
+												onClick={() => toggleChecklistItem(item.id)}
+												className={`d-flex align-items-center gap-3 p-3 rounded border checklist-item-row cursor-pointer ${item.is_checked ? 'opacity-50 checked' : ''}`}
+											>
+												<div
+													className={`d-flex align-items-center justify-content-center rounded flex-shrink-0 checklist-checkbox ${item.is_checked ? 'checked' : ''}`}
+													style={{ width: '20px', height: '20px', borderRadius: '4px', border: '2px solid' }}
+												>
+													{item.is_checked && <i className="fa-solid fa-check text-white" style={{ fontSize: '10px' }}></i>}
+												</div>
+												<span className={`${item.is_checked ? 'text-decoration-line-through' : ''}`}>
+													{item.content}
+												</span>
+											</div>
+										))}
+									</div>
+								) : (
+									<div className="task-detail-description">
+										{task.description || <em className="text-muted">No details provided.</em>}
+									</div>
 								)}
 							</>
 						)}
 					</div>
-				</div>
-			</BootstrapModal>
+
+					<div className="task-detail-footer">
+						{!isEditing && (
+							<div>
+								{task.task_type === 'assignment' && (
+									<div className="small text-muted mb-1">
+										<i className="fa-solid fa-user me-2" style={{ fontSize: '11px' }}></i>
+										Assigned to: <span className="text-body fw-medium">
+											{task.assignees && task.assignees.length > 0
+												? task.assignees.map(u => u.username).join(', ')
+												: (task.assigned_to ? task.assigned_to.username : 'Everyone')}
+										</span>
+									</div>
+								)}
+								<div className="text-secondary task-meta-text">
+									<i className="fa-regular fa-user me-2" style={{ fontSize: '11px' }}></i>
+									Created by {task.created_by.username}
+								</div>
+							</div>
+						)}
+
+						<div className="d-flex gap-2 ms-auto">
+							{isEditing ? (
+								<>
+									<button
+										onClick={() => setIsEditing(false)}
+										className="btn btn-outline-secondary btn-sm task-action-btn"
+									>
+										Cancel
+									</button>
+									<button
+										onClick={handleSave}
+										className="btn btn-primary btn-sm task-action-btn"
+									>
+										<i className="fa-solid fa-check me-1"></i>
+										Save
+									</button>
+								</>
+							) : (
+								<>
+									{canEdit && (
+										<button
+											onClick={() => setIsEditing(true)}
+											className="btn btn-outline-primary btn-sm task-action-btn"
+										>
+											<i className="fa-solid fa-pen me-1"></i>
+											Edit
+										</button>
+									)}
+									{canDelete && (
+										<button
+											onClick={() => setShowDeleteConfirm(true)}
+											className="btn btn-outline-danger btn-sm task-action-btn"
+										>
+											<i className="fa-solid fa-trash me-1"></i>
+											Delete
+										</button>
+									)}
+									{canComplete && (
+										<button
+											onClick={() => setShowCompleteConfirm(true)}
+											className="btn btn-success btn-sm task-action-btn"
+										>
+											<i className="fa-solid fa-check me-1"></i>
+											Complete
+										</button>
+									)}
+								</>
+							)}
+						</div>
+					</div>
+				</BootstrapModal>
 			</div>
 
 			<ConfirmationModal
@@ -509,6 +623,15 @@ export const TaskDetailModal = ({ isOpen, onClose, task, user, onUpdate, onDelet
 				message="Are you sure you want to delete this item? This action cannot be undone."
 				confirmText="Delete"
 				isDestructive={true}
+			/>
+
+			<ConfirmationModal
+				isOpen={showCompleteConfirm}
+				onClose={() => setShowCompleteConfirm(false)}
+				onConfirm={toggleTaskStatus}
+				title="Complete Task"
+				message="Are you sure you want to complete this task?"
+				confirmText="Complete"
 			/>
 		</>
 	);
@@ -564,7 +687,7 @@ export const JoinCircleModal = ({ isOpen, onClose, onSuccess, showToast }) => {
 				showToast('Invalid Code', 'Error');
 			}
 		} catch (err) {
-			console.error(err);
+			// Silent
 		}
 	};
 
@@ -689,7 +812,6 @@ export const MembersModal = ({ isOpen, onClose, members, currentUserId, adminId,
 	);
 };
 
-import Sudoku from '../pages/Sudoku';
 
 export const SudokuModal = ({ isOpen, onClose, circleId }) => {
 	return (

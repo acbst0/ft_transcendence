@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from core.models import Circle
 from core.serializers import CircleSerializer, CircleDetailSerializer
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class CircleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -36,7 +38,26 @@ class CircleViewSet(viewsets.ModelViewSet):
             circle = Circle.objects.get(invite_code=code)
             if request.user in circle.members.all():
                 return Response({'status': 'already member', 'circle_id': circle.id})
+            
             circle.members.add(request.user)
+            
+            channel_layer = get_channel_layer()
+            for member in circle.members.all():
+                if member.id != request.user.id:
+                    async_to_sync(channel_layer.group_send)(
+                        f'notifications_{member.id}',
+                        {
+                            'type': 'send_notification',
+                            'notification': {
+                                'type': 'circle_message',
+                                'sender': request.user.username,
+                                'circle_id': circle.id,
+                                'task_id': None,
+                                'message': f"{request.user.username} joined the circle {circle.name}"
+                            }
+                        }
+                    )
+            
             return Response({'status': 'joined', 'circle': CircleSerializer(circle).data})
         except Circle.DoesNotExist:
             return Response({'error': 'Invalid code'}, status=status.HTTP_404_NOT_FOUND)
@@ -44,7 +65,28 @@ class CircleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def join(self, request, pk=None):
         circle = self.get_object()
+        if request.user in circle.members.all():
+             return Response({'status': 'already member'})
+             
         circle.members.add(request.user)
+        
+        channel_layer = get_channel_layer()
+        for member in circle.members.all():
+            if member.id != request.user.id:
+                async_to_sync(channel_layer.group_send)(
+                    f'notifications_{member.id}',
+                    {
+                        'type': 'send_notification',
+                        'notification': {
+                            'type': 'circle_message',
+                            'sender': request.user.username,
+                            'circle_id': circle.id,
+                            'task_id': None,
+                            'message': f"{request.user.username} joined the circle {circle.name}"
+                        }
+                    }
+                )
+        
         return Response({'status': 'joined circle'})
 
     @action(detail=True, methods=['post'])

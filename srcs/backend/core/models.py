@@ -34,7 +34,7 @@ class Task(models.Model):
     circle = models.ForeignKey(Circle, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    assigned_to = models.ForeignKey(User, related_name='tasks', null=True, blank=True, on_delete=models.SET_NULL)
+    assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     created_by = models.ForeignKey(User, related_name='created_tasks', on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     task_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='assignment')
@@ -83,12 +83,26 @@ class DirectMessage(models.Model):
 
 class SudokuGame(models.Model):
     circle = models.OneToOneField(Circle, related_name='sudoku_game', on_delete=models.CASCADE)
-    board = models.JSONField(default=list)  # Current 9x9 grid
-    initial_board = models.JSONField(default=list)  # Initial 9x9 grid
-    solution = models.JSONField(default=list) # Solution grid
+    board = models.JSONField(default=list)
+    initial_board = models.JSONField(default=list)
+    solution = models.JSONField(default=list)
     difficulty = models.CharField(max_length=20, default='easy')
     is_solved = models.BooleanField(default=False)
+    mistakes = models.IntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Sudoku for {self.circle.name}"
+
+class TicTacToeGame(models.Model):
+    circle = models.OneToOneField(Circle, related_name='tictactoe_game', on_delete=models.CASCADE)
+    board = models.JSONField(default=list)  # 3x3 grid
+    current_turn = models.CharField(max_length=1, default='X')
+    player_x = models.ForeignKey(User, related_name='tictactoe_x', on_delete=models.SET_NULL, null=True, blank=True)
+    player_o = models.ForeignKey(User, related_name='tictactoe_o', on_delete=models.SET_NULL, null=True, blank=True)
+    winner = models.CharField(max_length=1, null=True, blank=True)
+    is_draw = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"TicTacToe for {self.circle.name}"

@@ -20,6 +20,9 @@ logs:
 
 clean:
 	cd srcs && docker compose down -v
+
+fclean:
+	cd srcs && docker compose down -v
 	docker system prune -af
 
 re: clean all

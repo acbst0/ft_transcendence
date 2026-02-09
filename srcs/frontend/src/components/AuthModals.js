@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import KVKKModal from './KVKKModal';
+import TermsModal from './TermsModal';
 import './AuthModals.css';
 
 export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
@@ -32,6 +34,11 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 		}
 	};
 
+	const handleGoogleLogin = () => {
+		const backendUrl = window.location.origin;
+		window.location.href = `${backendUrl}/auth/login/google-oauth2/`;
+	};
+
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Welcome Back">
 			<form className="auth-form" onSubmit={handleSubmit}>
@@ -62,7 +69,7 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 					<span>or continue with</span>
 				</div>
 
-				<button type="button" className="google-btn">
+				<button type="button" className="google-btn" onClick={handleGoogleLogin}>
 					<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
 					Google
 				</button>
@@ -71,19 +78,22 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 	);
 };
 
-export const RegisterModal = ({ isOpen, onClose }) => {
+export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 	const [username, setUsername] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [kvkkAccepted, setKvkkAccepted] = useState(false);
 	const [error, setError] = useState('');
 
+	const [isKVKKOpen, setIsKVKKOpen] = useState(false);
+	const [isTermsOpen, setIsTermsOpen] = useState(false);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError('');
 
 		if (!kvkkAccepted) {
-			setError('You must accept the KVKK terms to register.');
+			setError('You must accept the KVKK and Terms to register.');
 			return;
 		}
 
@@ -97,12 +107,9 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 			const data = await response.json();
 
 			if (response.ok) {
-				// Auto login or ask to login? let's auto login or close
-				// For now just close and show success (or could reuse handleLogin logic)
 				onClose();
-				alert('Account created! Please login.');
+				if (onSuccess) onSuccess('Account created! Please login.');;
 			} else {
-				// quick error parsing
 				let msg = 'Registration failed';
 				if (data.username) msg = `Username: ${data.username[0]}`;
 				else if (data.email) msg = `Email: ${data.email[0]}`;
@@ -115,64 +122,80 @@ export const RegisterModal = ({ isOpen, onClose }) => {
 		}
 	};
 
+	const handleGoogleRegister = () => {
+		const backendUrl = window.location.origin;
+		window.location.href = `${backendUrl}/auth/login/google-oauth2/`;
+	};
+
 	return (
-		<Modal isOpen={isOpen} onClose={onClose} title="Create Account">
-			<form className="auth-form" onSubmit={handleSubmit}>
-				{error && <div className="error-message" style={{ color: '#ff4d4f', fontSize: '14px' }}>{error}</div>}
-				<div className="form-group">
-					<label>Username</label>
-					<input
-						type="text"
-						placeholder="Choose a username"
-						className="glass-input"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-					/>
-				</div>
-				<div className="form-group">
-					<label>Email</label>
-					<input
-						type="email"
-						placeholder="Enter your email"
-						className="glass-input"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
-				</div>
-				<div className="form-group">
-					<label>Password</label>
-					<input
-						type="password"
-						placeholder="Choose a password"
-						className="glass-input"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
-				</div>
-				<div className="form-group checkbox-group">
-					<label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
+		<>
+			<Modal isOpen={isOpen} onClose={onClose} title="Create Account">
+				<form className="auth-form" onSubmit={handleSubmit}>
+					{error && <div className="error-message" style={{ color: '#ff4d4f', fontSize: '14px' }}>{error}</div>}
+					<div className="form-group">
+						<label>Username</label>
 						<input
-							type="checkbox"
-							checked={kvkkAccepted}
-							onChange={(e) => setKvkkAccepted(e.target.checked)}
-							style={{ width: 'auto', margin: 0 }}
+							type="text"
+							placeholder="Choose a username"
+							className="glass-input"
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
 						/>
-						<span>
-							I have read and accept the <a href="#" onClick={(e) => { e.preventDefault(); alert('KVKK dummy text...'); }} style={{ color: '#4facfe' }}>KVKK terms</a>.
-						</span>
-					</label>
-				</div>
-				<button type="submit" className="primary-btn">Sign Up</button>
+					</div>
+					<div className="form-group">
+						<label>Email</label>
+						<input
+							type="email"
+							placeholder="Enter your email"
+							className="glass-input"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+					</div>
+					<div className="form-group">
+						<label>Password</label>
+						<input
+							type="password"
+							placeholder="Choose a password"
+							className="glass-input"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+					</div>
+					<div className="form-group checkbox-group">
+						<label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px', cursor: 'pointer', flexWrap: 'wrap' }}>
+							<input
+								type="checkbox"
+								checked={kvkkAccepted}
+								onChange={(e) => setKvkkAccepted(e.target.checked)}
+								style={{ width: 'auto', margin: 0 }}
+							/>
+							<span>
+								I have read and accept the{' '}
+								<a href="#" onClick={(e) => { e.preventDefault(); setIsKVKKOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold' }}>
+									KVKK
+								</a>{' '}
+								and{' '}
+								<a href="#" onClick={(e) => { e.preventDefault(); setIsTermsOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold' }}>
+									Terms of Service
+								</a>.
+							</span>
+						</label>
+					</div>
+					<button type="submit" className="primary-btn">Sign Up</button>
 
-				<div className="divider">
-					<span>or continue with</span>
-				</div>
+					<div className="divider">
+						<span>or continue with</span>
+					</div>
 
-				<button type="button" className="google-btn">
-					<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
-					Google
-				</button>
-			</form>
-		</Modal>
+					<button type="button" className="google-btn" onClick={handleGoogleRegister}>
+						<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
+						Google
+					</button>
+				</form>
+			</Modal>
+			<KVKKModal isOpen={isKVKKOpen} onClose={() => setIsKVKKOpen(false)} />
+			<TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+		</>
 	);
 };

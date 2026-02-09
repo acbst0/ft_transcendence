@@ -1,64 +1,50 @@
 .modal-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.7);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: 1000;
-	backdrop-filter: blur(4px);
-	animation: fadeIn 0.3s ease;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-container {
-	width: 90%;
-	max-width: 400px;
-	padding: 30px;
-	border-radius: var(--radius-lg);
-	animation: slideIn 0.3s ease;
-	position: relative;
+    width: 90%;
+    max-width: 420px;
+    padding: 35px;
+    background-color: var(--auth-modal-bg) !important;
+    border-radius: 25px; 
+    position: relative;
+    animation: slideIn 0.3s ease;
 }
 
 .modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px !important;
 }
 
 .modal-header h2 {
-	font-size: 24px;
-	font-weight: 600;
-	color: var(--text);
-	color: var(--text);
+    font-size: 26px;
+    font-weight: 700;
+    color: white; 
+    margin: 0;
+	margin-bottom: 0 !important;
 }
 
 .close-btn {
-	background: transparent;
-	color: var(--text-muted);
-	font-size: 28px;
-	line-height: 1;
-	padding: 0;
-	width: 30px;
-	height: 30px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
-	transition: all 0.2s;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 32px;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
 }
 
-.close-btn:hover {
-	background: rgba(255, 255, 255, 0.1);
-	color: var(--text);
-}
-
-.modal-content {
-	color: var(--text-muted);
-}
+.close-btn:hover { color: white; }
 
 @keyframes fadeIn {
 	from {
@@ -80,4 +66,16 @@
 		transform: translateY(0);
 		opacity: 1;
 	}
+}
+
+@media (max-width: 480px) {
+    .modal-container {
+        width: 95%;
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .modal-header h2 {
+        font-size: 20px;
+    }
 }

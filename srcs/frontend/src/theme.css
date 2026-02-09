@@ -1,0 +1,44 @@
+:root, [data-my-theme='light'] {
+    --bg-home: #ffffff;
+    --text-hero: #754496;
+    --text-sub: #555555;
+    --card-light: #d2e6c7;
+    --card-moss: #506e40;
+    --card-text-dark: #2b0b3c;
+    --navbar-logo: #754496;
+    --theme-btn-color: #333333;
+    --auth-modal-bg: #8367c7;  
+    --auth-text-color: #ffffff;
+    --auth-input-bg: #ffffff;  
+    --auth-input-text: #000000;
+    --auth-modal-pr: #83ad6c; 
+    --auth-divider: rgba(255, 255, 255, 0.2);
+    --how-buton: #749c75;
+    --reg-buton: #754496;
+    --primary-hover: #754496;
+    --primary: #a36fc6;
+    --nav-bg: transparent;
+}
+
+[data-my-theme='dark'] {
+    --bg-home: #1e1e1e;
+    --text-hero: #ede6f5;
+    --text-sub: #ffffff;
+    --card-light: #bfe1c3;
+    --card-moss: #415d43;
+    --card-text-dark: #2b0b3c;
+    --navbar-logo: #ffffff;
+    --theme-btn-color: #ffffff;
+    --auth-modal-bg: #70587c;  
+    --auth-text-color: #ffffff;
+    --auth-input-bg: #ffffff;  
+    --auth-input-text: #000000;
+    --auth-modal-pr: #749c75;
+    --auth-divider: rgba(255, 255, 255, 0.1);
+    --how-buton: #709775;
+    --reg-buton: #754496;
+    --primary-hover: #754496;
+    --primary: #b48fcc;
+    --nav-bg: rgba(30, 30, 30, 0.95);
+
+}

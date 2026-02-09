@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'social_django',
     'core',
 ]
 
@@ -117,8 +118,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Channels Configuration
-# Channels Configuration
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -137,4 +136,45 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/minute',
+        'user': '100/minute'
+    }
 }
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH_CLIENT_ID', default='')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='')
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name', 'email']
+
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
+SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/api/auth/google/callback/'
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/?oauth_error=login_failed'
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'core.pipeline.create_user_profile',
+)
+

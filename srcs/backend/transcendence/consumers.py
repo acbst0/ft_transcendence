@@ -10,7 +10,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs'].get('room_name', 'general')
         self.room_group_name = f'chat_{self.room_name}'
         
-        # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -18,7 +17,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         await self.accept()
         
-        # Send notification to group that user connected
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -29,13 +27,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
         
-        # Send notification to group that user disconnected
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -51,7 +47,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             data = json.loads(text_data)
             message = data.get('message', '')
             
-            # Send message to room group
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -70,7 +65,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         sender = event['sender']
         
-        # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
             'message': message,
@@ -79,7 +73,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def user_event(self, event):
         """Handle user events (join/leave)"""
-        # Send event to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'user_event',
             'message': event['message'],
@@ -98,7 +91,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         self.user_id = self.scope['user'].id
         self.notification_group_name = f'notifications_{self.user_id}'
         
-        # Join notification group
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name
@@ -107,7 +99,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave notification group
         await self.channel_layer.group_discard(
             self.notification_group_name,
             self.channel_name
@@ -118,7 +109,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             
-            # Process notification here if needed
             await self.send(text_data=json.dumps({
                 'status': 'received'
             }))
