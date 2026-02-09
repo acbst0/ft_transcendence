@@ -76,7 +76,6 @@ localhost {
     }
 }
 
-dashboard.planora.com {
     handle /api/* {
         reverse_proxy backend:8000
     }

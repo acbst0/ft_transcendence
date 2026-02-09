@@ -11,6 +11,7 @@ db.sqlite3
 .env
 venv/
 env/
+srcs/.env
 
 # System
 .DS_Store

@@ -14,14 +14,10 @@
     --auth-modal-pr: #83ad6c; 
     --auth-divider: rgba(255, 255, 255, 0.2);
     --how-buton: #749c75;
-    --reg-buton: #754496;
-    --primary-hover: #754496;
-    --primary: #a36fc6;
-    --nav-bg: transparent;
 }
 
 [data-my-theme='dark'] {
-    --bg-home: #1e1e1e;
+    --bg-home: #3e2248;
     --text-hero: #ede6f5;
     --text-sub: #ffffff;
     --card-light: #bfe1c3;
@@ -36,9 +32,4 @@
     --auth-modal-pr: #749c75;
     --auth-divider: rgba(255, 255, 255, 0.1);
     --how-buton: #709775;
-    --reg-buton: #754496;
-    --primary-hover: #754496;
-    --primary: #b48fcc;
-    --nav-bg: rgba(30, 30, 30, 0.95);
-
 }

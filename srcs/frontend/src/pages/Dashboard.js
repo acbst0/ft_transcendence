@@ -239,8 +239,7 @@ const Dashboard = () => {
 		const token = localStorage.getItem('token');
 		if (token) {
 			const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-			const host = window.location.host.replace(':3000', '');
-			const wsUrl = `${wsScheme}://${host}/ws/online/?token=${token}`;
+			const wsUrl = `${wsScheme}://${window.location.host}/ws/online/?token=${token}`;
 			const presenceWs = new WebSocket(wsUrl);
 
 			presenceWs.onopen = () => {
@@ -277,8 +276,7 @@ const Dashboard = () => {
 		if (!token) return;
 
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const host = window.location.host.replace(':3000', '');
-		const wsUrl = `${protocol}//${host}/ws/notifications/?token=${token}`;
+		const wsUrl = `${protocol}//${window.location.host}/ws/notifications/?token=${token}`;
 		const notifWs = new WebSocket(wsUrl);
 
 		notifWs.onopen = () => { /* Connected */ };
@@ -322,22 +320,7 @@ const Dashboard = () => {
 			if (res.ok) {
 				const data = await res.json();
 				setMyCircles(data);
-
-				let envToSelect = null;
-				const savedEnvId = localStorage.getItem('lastSelectedEnvId');
-
-				if (savedEnvId) {
-					const found = data.find(c => c.id === Number(savedEnvId));
-					if (found) envToSelect = found;
-				}
-
-				if (!envToSelect && data.length > 0) {
-					envToSelect = data[0];
-				}
-
-				if (envToSelect && (!selectedEnv || selectedEnv.id !== envToSelect.id)) {
-					setSelectedEnv(envToSelect);
-				}
+				if (data.length > 0 && !selectedEnv) setSelectedEnv(data[0]);
 			}
 		} catch (e) { /* Silent */ }
 	};
@@ -407,13 +390,12 @@ const Dashboard = () => {
 			setMessages([]);
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const host = window.location.host.replace(':3000', '');
 			let wsUrl = '';
 
 			if (activeChatMode === 'circle') {
-				wsUrl = `${protocol}//${host}/ws/chat/${selectedEnv.id}/?token=${token}`;
+				wsUrl = `${protocol}//${window.location.host}/ws/chat/${selectedEnv.id}/?token=${token}`;
 			} else {
-				wsUrl = `${protocol}//${host}/ws/chat/dm/${dmTarget.id}/?token=${token}`;
+				wsUrl = `${protocol}//${window.location.host}/ws/dm/${dmTarget.id}/?token=${token}`;
 			}
 
 			ws.current = new WebSocket(wsUrl);
@@ -470,11 +452,7 @@ const Dashboard = () => {
 
 	useEffect(() => {
 		if (myCircles.length > 0 && !selectedEnv) {
-			const savedEnvId = localStorage.getItem('lastSelectedEnvId');
-			let found = null;
-			if (savedEnvId) found = myCircles.find(c => c.id === Number(savedEnvId));
-
-			setSelectedEnv(found || myCircles[0]);
+			setSelectedEnv(myCircles[0]);
 		}
 	}, [myCircles, selectedEnv]);
 
@@ -507,10 +485,7 @@ const Dashboard = () => {
 	const selectEnv = (circle) => {
 		if (circle === 'create') setShowCreateCircle(true);
 		else if (circle === 'join') setShowJoin(true);
-		else {
-			setSelectedEnv(circle);
-			localStorage.setItem('lastSelectedEnvId', circle.id);
-		}
+		else setSelectedEnv(circle);
 		setComboOpen(false);
 	};
 
@@ -742,9 +717,9 @@ const Dashboard = () => {
 				messagesEndRef={messagesEndRef}
 				isMobile={isMobile}
 			/>
-			<CreateCircleModal isOpen={showCreateCircle} onClose={() => setShowCreateCircle(false)} onSuccess={(newCircle) => { setMyCircles([...myCircles, newCircle]); setSelectedEnv(newCircle); localStorage.setItem('lastSelectedEnvId', newCircle.id); }} showToast={showToast} />
+			<CreateCircleModal isOpen={showCreateCircle} onClose={() => setShowCreateCircle(false)} onSuccess={(newCircle) => { setMyCircles([...myCircles, newCircle]); setSelectedEnv(newCircle); }} showToast={showToast} />
 			<InviteModal isOpen={showInvite} onClose={() => setShowInvite(false)} inviteCode={selectedEnv?.invite_code} showToast={showToast} />
-			<JoinCircleModal isOpen={showJoin} onClose={() => setShowJoin(false)} onSuccess={(c) => { if (!myCircles.find(x => x.id === c.id)) setMyCircles([...myCircles, c]); setSelectedEnv(c); localStorage.setItem('lastSelectedEnvId', c.id); }} showToast={showToast} />
+			<JoinCircleModal isOpen={showJoin} onClose={() => setShowJoin(false)} onSuccess={(c) => { if (!myCircles.find(x => x.id === c.id)) setMyCircles([...myCircles, c]); setSelectedEnv(c); }} showToast={showToast} />
 			<CreateTaskModal
 				isOpen={showCreateTask}
 				onClose={() => setShowCreateTask(false)}
