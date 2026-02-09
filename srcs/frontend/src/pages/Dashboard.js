@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { CreateCircleModal, CreateTaskModal, InviteModal, JoinCircleModal, TaskDetailModal, ConfirmationModal } from '../components/DashboardModals';
 import Sudoku from './Sudoku';
+import TicTacToe from './TicTacToe';
 import DashboardSidebar from '../components/DashboardSidebar';
 import DashboardTopbar from '../components/DashboardTopbar';
 import DashboardSettings from '../components/DashboardSettings';
@@ -658,7 +659,9 @@ const Dashboard = () => {
 
 				<main className={`content-area view-${activeView}`}>
 					{activeView === 'sudoku' ? (
-						<Sudoku circleId={selectedEnv?.id} showToast={showToast} />
+						<Sudoku key={selectedEnv?.id} circleId={selectedEnv?.id} showToast={showToast} />
+					) : activeView === 'tictactoe' ? (
+						<TicTacToe key={selectedEnv?.id} circleId={selectedEnv?.id} showToast={showToast} />
 					) : activeView === 'settings' ? (
 						<DashboardSettings
 							profileData={profileData}
