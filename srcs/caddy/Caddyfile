@@ -1,80 +1,11 @@
-localhost {
-    handle /api/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /auth/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /media/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/chat/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/notifications/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/sudoku/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/tictactoe/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/online/* {
-        reverse_proxy backend:8000
-    }
-
-    handle {
-        reverse_proxy frontend:3000
-    }
+# HTTP to HTTPS redirect
+:80 {
+    redir https://{host}{uri} permanent
 }
 
+# HTTPS server
 :443 {
-    tls internal
-
-    handle /api/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /auth/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /media/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/chat/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/notifications/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/sudoku/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/tictactoe/* {
-        reverse_proxy backend:8000
-    }
-
-    handle /ws/online/* {
-        reverse_proxy backend:8000
-    }
-
-    handle {
-        reverse_proxy frontend:3000
-    }
-}
+    tls /etc/caddy/server.crt /etc/caddy/server.key
 
     handle /api/* {
         reverse_proxy backend:8000
