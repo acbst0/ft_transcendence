@@ -24,7 +24,11 @@ const Dashboard = () => {
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 	const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 	const [comboOpen, setComboOpen] = useState(false);
-	const [activeView, setActiveView] = useState('dashboard');
+	const [activeView, setActiveView] = useState(localStorage.getItem('activeView') || 'dashboard');
+
+	useEffect(() => {
+		localStorage.setItem('activeView', activeView);
+	}, [activeView]);
 	const [darkMode, setDarkMode] = useState(true);
 
 	useEffect(() => {
@@ -65,6 +69,7 @@ const Dashboard = () => {
 		username: '',
 		email: '',
 		password: '',
+		bio: '',
 		avatar: null,
 		avatarUrl: ''
 	});
@@ -213,6 +218,7 @@ const Dashboard = () => {
 						username: userData.username,
 						email: userData.email,
 						password: '',
+						bio: userData.bio || '',
 						avatar: null,
 						avatarUrl: userData.avatar
 					});
@@ -532,6 +538,7 @@ const Dashboard = () => {
 		const formData = new FormData();
 		formData.append('username', profileData.username);
 		formData.append('email', profileData.email);
+		formData.append('bio', profileData.bio);
 		if (profileData.password) formData.append('password', profileData.password);
 		if (profileData.avatar) formData.append('avatar', profileData.avatar);
 		if (profileData.removeAvatar) formData.append('remove_avatar', 'true');

@@ -121,7 +121,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 								Join
 							</button>
 						)}
-						{players.X?.id == currentUser?.id && (
+						{players.X?.id === currentUser?.id && (
 							<button className="btn btn-sm btn-outline-danger ms-2" onClick={leaveGame} title="Leave Game">
 								<i className="fa-solid fa-arrow-right-from-bracket"></i>
 							</button>
@@ -136,7 +136,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 								Join
 							</button>
 						)}
-						{players.O?.id == currentUser?.id && (
+						{players.O?.id === currentUser?.id && (
 							<button className="btn btn-sm btn-outline-danger ms-2" onClick={leaveGame} title="Leave Game">
 								<i className="fa-solid fa-arrow-right-from-bracket"></i>
 							</button>

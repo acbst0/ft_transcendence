@@ -5,10 +5,14 @@ from .models import Circle, UserProfile, Task, Message, ChecklistItem, DirectMes
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
     is_online = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar', 'is_online']
+        fields = ['id', 'username', 'email', 'avatar', 'is_online', 'is_favorited', 'bio', 'followers_count', 'following_count']
 
     def get_avatar(self, obj):
         try:
@@ -25,6 +29,41 @@ class UserSerializer(serializers.ModelSerializer):
         except:
             pass
         return False
+
+    def get_is_favorited(self, obj):
+        try:
+            request = self.context.get('request')
+            if request and hasattr(request, 'user') and request.user.is_authenticated:
+                return request.user.profile.favorites.filter(id=obj.id).exists()
+        except:
+            pass
+        return False
+
+    def get_bio(self, obj):
+        try:
+            if hasattr(obj, 'profile'):
+                return obj.profile.bio
+        except:
+            pass
+        return ""
+
+    def get_followers_count(self, obj):
+        try:
+            # People who have favorited this user.
+            # Since UserProfile.favorites is M2M to User with related_name='favorited_by'
+            # obj.favorited_by returns a queryset of UserProfiles.
+            return obj.favorited_by.count()
+        except Exception as e:
+            return 0
+
+    def get_following_count(self, obj):
+        try:
+            # People this user has favorited.
+            if hasattr(obj, 'profile'):
+                return obj.profile.favorites.count()
+        except:
+            pass
+        return 0
 
 class ChecklistItemSerializer(serializers.ModelSerializer):
     class Meta:

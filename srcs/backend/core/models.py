@@ -66,6 +66,8 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     is_online = models.BooleanField(default=False)
     kvkk_accepted = models.BooleanField(default=False)
+    favorites = models.ManyToManyField(User, related_name='favorited_by', blank=True)
+    bio = models.TextField(max_length=200, blank=True)
     
 
     def __str__(self):
