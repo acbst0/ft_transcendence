@@ -116,12 +116,12 @@ const TicTacToe = ({ circleId, showToast }) => {
 					<div className={`player-badge ${turn === 'X' ? 'active' : ''}`}>
 						<span className="fw-bold text-danger">X</span>
 						<span>{players.X?.username || 'Waiting...'}</span>
-						{!players.X && !players.O && (
+						{!players.X && (
 							<button className="btn btn-sm btn-outline-light ms-2" onClick={() => joinGame('X')}>
 								Join
 							</button>
 						)}
-						{players.X?.id === currentUser?.id && (
+						{players.X?.id == currentUser?.id && (
 							<button className="btn btn-sm btn-outline-danger ms-2" onClick={leaveGame} title="Leave Game">
 								<i className="fa-solid fa-arrow-right-from-bracket"></i>
 							</button>
@@ -131,12 +131,12 @@ const TicTacToe = ({ circleId, showToast }) => {
 					<div className={`player-badge ${turn === 'O' ? 'active' : ''}`}>
 						<span className="fw-bold text-primary">O</span>
 						<span>{players.O?.username || 'Waiting...'}</span>
-						{!players.O && !players.X && (
+						{!players.O && (
 							<button className="btn btn-sm btn-outline-light ms-2" onClick={() => joinGame('O')}>
 								Join
 							</button>
 						)}
-						{players.O?.id === currentUser?.id && (
+						{players.O?.id == currentUser?.id && (
 							<button className="btn btn-sm btn-outline-danger ms-2" onClick={leaveGame} title="Leave Game">
 								<i className="fa-solid fa-arrow-right-from-bracket"></i>
 							</button>
@@ -165,7 +165,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 			</div>
 
 			<div className="tictactoe-board">
-				{board.map((row, rIndex) => (
+				{board && board.length === 3 && board.map((row, rIndex) => (
 					row.map((cell, cIndex) => {
 						const cellContent = cell || '';
 						const isInteractable = !cell && isMyTurn();

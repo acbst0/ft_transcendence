@@ -89,6 +89,10 @@ class TicTacToeConsumer(AsyncWebsocketConsumer):
             return False
 
         # Validation logic
+        # Validation logic
+        if not game.player_x or not game.player_o:
+            return False
+
         if game.winner or game.is_draw:
             return False
 
@@ -235,12 +239,22 @@ class TicTacToeConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def assign_player(self, role):
-        game, _ = TicTacToeGame.objects.get_or_create(circle_id=self.circle_id)
+        game, created = TicTacToeGame.objects.get_or_create(
+            circle_id=self.circle_id,
+            defaults={
+                'board': [[None, None, None], [None, None, None], [None, None, None]],
+                'current_turn': 'X'
+            }
+        )
         if role == 'X' and not game.player_x:
+            if game.player_o == self.user:
+                return False
             game.player_x = self.user
             game.save()
             return True
         elif role == 'O' and not game.player_o:
+            if game.player_x == self.user:
+                return False
             game.player_o = self.user
             game.save()
             return True

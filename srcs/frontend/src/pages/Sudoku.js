@@ -7,11 +7,11 @@ const Sudoku = ({ circleId, showToast }) => {
 	const [initialBoard, setInitialBoard] = useState(Array(9).fill().map(() => Array(9).fill(0)));
 	const [solution, setSolution] = useState(null);
 	const [selectedCell, setSelectedCell] = useState(null);
-	const [mistakes, setMistakes] = useState(0); 
+	const [mistakes, setMistakes] = useState(0);
 	const [isSolved, setIsSolved] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
-	const [gameDifficulty, setGameDifficulty] = useState('easy'); 
-	const [nextDifficulty, setNextDifficulty] = useState('easy'); 
+	const [gameDifficulty, setGameDifficulty] = useState('easy');
+	const [nextDifficulty, setNextDifficulty] = useState('easy');
 
 	const ws = useRef(null);
 
@@ -37,21 +37,23 @@ const Sudoku = ({ circleId, showToast }) => {
 				setInitialBoard(data.initial_board);
 				setSolution(data.solution);
 				setIsSolved(data.is_solved);
+				setMistakes(data.mistakes);
 				setGameDifficulty(data.difficulty);
-				setNextDifficulty(data.difficulty); 
-				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) {}
+				setNextDifficulty(data.difficulty);
+				if (data.board.length === 0 || (data.board.length > 0 && data.board[0].length === 0)) { }
 			} else if (data.type === 'board_update') {
 				setBoard(prev => {
 					const newBoard = prev.map(row => [...row]);
 					newBoard[data.row][data.col] = data.value;
 					return newBoard;
 				});
+				setMistakes(data.mistakes);
 			} else if (data.type === 'new_game') {
 				setBoard(data.board);
 				setInitialBoard(data.initial_board);
 				setSolution(data.solution);
 				setIsSolved(false);
-				setMistakes(0); 
+				setMistakes(0);
 				setGameDifficulty(data.difficulty);
 				setNextDifficulty(data.difficulty);
 			}
@@ -74,7 +76,7 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		ws.current.send(JSON.stringify({
 			type: 'new_game',
-			board: initial, 
+			board: initial,
 			initial_board: initial,
 			solution: solved,
 			difficulty: nextDifficulty
@@ -90,9 +92,11 @@ const Sudoku = ({ circleId, showToast }) => {
 		const { row, col } = selectedCell;
 
 		if (initialBoard && initialBoard[row][col] !== 0) return;
+
+		let isMistake = false;
 		if (solution) {
 			if (num !== 0 && num !== solution[row][col]) {
-				setMistakes(prev => prev + 1);
+				isMistake = true;
 			}
 		}
 
@@ -100,7 +104,8 @@ const Sudoku = ({ circleId, showToast }) => {
 			type: 'update_cell',
 			row,
 			col,
-			value: num
+			value: num,
+			is_mistake: isMistake
 		}));
 	};
 
