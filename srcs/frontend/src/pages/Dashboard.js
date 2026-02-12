@@ -401,7 +401,7 @@ const Dashboard = () => {
 			if (activeChatMode === 'circle') {
 				wsUrl = `${protocol}//${window.location.host}/ws/chat/${selectedEnv.id}/?token=${token}`;
 			} else {
-				wsUrl = `${protocol}//${window.location.host}/ws/dm/${dmTarget.id}/?token=${token}`;
+				wsUrl = `${protocol}//${window.location.host}/ws/chat/dm/${dmTarget.id}/?token=${token}`;
 			}
 
 			ws.current = new WebSocket(wsUrl);

@@ -63,7 +63,6 @@ class ProfileView(viewsets.ViewSet):
             profile.favorites.add(target_user)
             is_favorited = True
             
-            # Send Notification
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
             

@@ -53,10 +53,7 @@ class LoginView(ObtainAuthToken):
         })
 
 class GoogleLoginCallback(View):
-    """
-    Custom callback view for Google OAuth
-    After successful OAuth, redirect to frontend with token
-    """
+
     def get(self, request, *args, **kwargs):
         user = request.user
         

@@ -10,9 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class SudokuConsumer(AsyncWebsocketConsumer):
-    """
-    Manages real-time multiplayer Sudoku games inside a circle.
-    """
 
     async def connect(self):
         self.circle_id = self.scope["url_route"]["kwargs"]["circle_id"]
@@ -68,12 +65,7 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             logger.warning("Invalid cell update payload")
             return
 
-        mistakes = await self.update_game_cell(
-            row=row,
-            col=col,
-            value=value,
-            is_mistake=is_mistake
-        )
+        mistakes = await self.update_game_cell(row=row, col=col, value=value, is_mistake=is_mistake)
 
         await self.channel_layer.group_send(
             self.group_name,
@@ -97,12 +89,7 @@ class SudokuConsumer(AsyncWebsocketConsumer):
             logger.warning("Invalid new game payload")
             return
 
-        await self.create_or_update_game(
-            board=board,
-            initial_board=initial_board,
-            solution=solution,
-            difficulty=difficulty
-        )
+        await self.create_or_update_game(board=board, initial_board=initial_board, solution=solution, difficulty=difficulty)
 
         await self.channel_layer.group_send(
             self.group_name,
@@ -151,9 +138,7 @@ class SudokuConsumer(AsyncWebsocketConsumer):
 
     def get_token_from_query(self):
         query_string = self.scope.get("query_string", b"").decode()
-        params = dict(
-            param.split("=") for param in query_string.split("&") if "=" in param
-        )
+        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
         return params.get("token")
 
     async def is_circle_member(self):

@@ -49,16 +49,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_followers_count(self, obj):
         try:
-            # People who have favorited this user.
-            # Since UserProfile.favorites is M2M to User with related_name='favorited_by'
-            # obj.favorited_by returns a queryset of UserProfiles.
             return obj.favorited_by.count()
         except Exception as e:
             return 0
 
     def get_following_count(self, obj):
         try:
-            # People this user has favorited.
             if hasattr(obj, 'profile'):
                 return obj.profile.favorites.count()
         except:

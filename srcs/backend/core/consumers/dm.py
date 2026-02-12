@@ -26,18 +26,12 @@ class DMConsumer(AsyncWebsocketConsumer):
 
         self.room_group_name = self.build_room_name()
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
         try:
@@ -72,9 +66,7 @@ class DMConsumer(AsyncWebsocketConsumer):
 
     def get_token_from_query(self):
         query_string = self.scope.get("query_string", b"").decode()
-        params = dict(
-            param.split("=") for param in query_string.split("&") if "=" in param
-        )
+        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
         return params.get("token")
 
     def build_room_name(self):
@@ -124,8 +116,4 @@ class DMConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, content):
         receiver = User.objects.get(id=self.target_user_id)
-        DirectMessage.objects.create(
-            sender=self.user,
-            receiver=receiver,
-            content=content
-        )
+        DirectMessage.objects.create(sender=self.user, receiver=receiver, content=content)

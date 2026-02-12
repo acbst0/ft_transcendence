@@ -1,135 +1,153 @@
 import json
 import logging
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import *
 from channels.db import database_sync_to_async
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AnonymousUser
-from core.models import Circle, TicTacToeGame
+from rest_framework.authtoken.models import Token
+from core.models import *
 
 logger = logging.getLogger(__name__)
 
+
 class TicTacToeConsumer(AsyncWebsocketConsumer):
-    """
-    Manages real-time multiplayer Tic-Tac-Toe games inside a circle.
-    """
 
     async def connect(self):
         self.circle_id = self.scope["url_route"]["kwargs"]["circle_id"]
-        self.group_name = f"tictactoe_{self.circle_id}"
+        self.roomGroup = "tictactoe_%s" % self.circle_id
 
-        user = await self.authenticate_user()
+        user = await self._auth()
+
         if not user or not user.is_authenticated:
-            logger.warning("TicTacToe socket rejected (unauthenticated)")
-            return await self.close()
+            logger.warning("unauth socket")
+            await self.close()
+            return
 
         self.user = user
 
-        if not await self.is_circle_member():
-            logger.warning(
-                "TicTacToe socket rejected (not a member)",
-                extra={"user_id": self.user.id, "circle_id": self.circle_id}
-            )
-            return await self.close()
+        if not await self._is_member():
+            logger.warning("not member %s" % user.id)
+            await self.close()
+            return
 
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.channel_layer.group_add(self.roomGroup, self.channel_name)
         await self.accept()
 
-        await self.send_existing_game_state()
+        await self._send_state()
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(self.roomGroup, self.channel_name)
 
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-        except json.JSONDecodeError:
-            logger.warning("Invalid JSON received in TicTacToeConsumer")
+        except:
             return
 
-        event_type = data.get("type")
+        t = data.get("type")
 
-        if event_type == "make_move":
-            await self.handle_make_move(data)
-        elif event_type == "join_game":
-            await self.handle_join_game(data)
-        elif event_type == "reset_game":
-            await self.handle_reset_game()
-        elif event_type == "leave_game":
-            await self.handle_leave_game()
+        if t == "join_game":
+            await self.join(data)
+        elif t == "make_move":
+            await self.move(data)
+        elif t == "reset_game":
+            await self.reset()
+        elif t == "leave_game":
+            await self.leave()
         else:
-            logger.warning("Unknown event type", extra={"type": event_type})
+            logger.info("unknown event")
 
-    async def handle_join_game(self, data):
-        role = data.get("role")  # 'X' or 'O'
-        if role not in ['X', 'O']:
+    async def join(self, data):
+        role = data.get("role")
+
+        if role not in ["X", "O"]:
             return
 
-        success = await self.assign_player(role)
-        if success:
-            await self.broadcast_game_update()
+        ok = await self._assign(role)
+        if ok:
+            await self._broadcast()
 
-    async def handle_make_move(self, data):
-        try:
-            row = data["row"]
-            col = data["col"]
-        except KeyError:
+    async def move(self, data):
+        row = data.get("row")
+        col = data.get("col")
+
+        if row is None or col is None:
             return
 
-        # Perform all DB operations in a sync wrapper
-        move_result = await self.process_move(row, col)
-        
-        if move_result:
-            await self.broadcast_game_update()
+        changed = await self._process(row, col)
+        if changed:
+            await self._broadcast()
+
+    async def reset(self):
+        await self._reset_game()
+        await self._broadcast()
+
+    async def leave(self):
+        await self._leave_game()
+        await self._broadcast()
 
     @database_sync_to_async
-    def process_move(self, row, col):
+    def _process(self, row, col):
         try:
             game = TicTacToeGame.objects.get(circle_id=self.circle_id)
         except TicTacToeGame.DoesNotExist:
             return False
 
-        # Validation logic
-        # Validation logic
         if not game.player_x or not game.player_o:
             return False
 
         if game.winner or game.is_draw:
             return False
 
-        # Check if it's user's turn
-        if game.current_turn == 'X' and game.player_x != self.user:
+        if game.current_turn == "X" and game.player_x != self.user:
             return False
-        if game.current_turn == 'O' and game.player_o != self.user:
-            return False
-
-        # Check if cell is empty
-        if game.board[row][col] is not None:
+        if game.current_turn == "O" and game.player_o != self.user:
             return False
 
-        # Apply move
+        if game.board[row][col] != None:
+            return False
+
         game.board[row][col] = game.current_turn
-        
-        # Check win/draw
-        winner = self.check_winner(game.board)
-        if winner:
-            game.winner = winner
-        elif self.check_draw(game.board):
+
+        win = self._check(game.board)
+
+        if win:
+            game.winner = win
+        elif self._draw(game.board):
             game.is_draw = True
         else:
-            # Switch turn
-            game.current_turn = 'O' if game.current_turn == 'X' else 'X'
+            game.current_turn = "O" if game.current_turn == "X" else "X"
 
         game.save()
         return True
 
-    async def handle_reset_game(self):
-        await self.reset_game_state()
-        await self.broadcast_game_update()
+    def _check(self, b):
+        for i in range(3):
+            if b[i][0] and b[i][0] == b[i][1] == b[i][2]:
+                return b[i][0]
 
-    async def broadcast_game_update(self):
-        state = await self.get_game_state_dict()
+        for i in range(3):
+            if b[0][i] and b[0][i] == b[1][i] == b[2][i]:
+                return b[0][i]
+
+        if b[0][0] and b[0][0] == b[1][1] == b[2][2]:
+            return b[0][0]
+
+        if b[0][2] and b[0][2] == b[1][1] == b[2][0]:
+            return b[0][2]
+
+        return None
+
+    def _draw(self, board):
+        for r in board:
+            if None in r:
+                return False
+        return True
+
+    async def _broadcast(self):
+        state = await self._state_dict()
+
         await self.channel_layer.group_send(
-            self.group_name,
+            self.roomGroup,
             {
                 "type": "game_update",
                 "state": state
@@ -142,54 +160,25 @@ class TicTacToeConsumer(AsyncWebsocketConsumer):
             "state": event["state"]
         }))
 
-    async def send_existing_game_state(self):
-        state = await self.get_game_state_dict()
-        if state:
-            await self.send(text_data=json.dumps({
-                "type": "game_state",
-                "state": state
-            }))
-
-    # Logic Helpers
-    def check_winner(self, board):
-        # Rows
-        for i in range(3):
-            if board[i][0] and board[i][0] == board[i][1] == board[i][2]:
-                return board[i][0]
-        # Cols
-        for i in range(3):
-            if board[0][i] and board[0][i] == board[1][i] == board[2][i]:
-                return board[0][i]
-        # Diagonals
-        if board[0][0] and board[0][0] == board[1][1] == board[2][2]:
-            return board[0][0]
-        if board[0][2] and board[0][2] == board[1][1] == board[2][0]:
-            return board[0][2]
-        return None
-
-    def check_draw(self, board):
-        for row in board:
-            if None in row:
-                return False
-        return True
-
-    # Database Helpers
-    @database_sync_to_async
-    def get_game_state_obj(self):
-        try:
-            return TicTacToeGame.objects.get(circle_id=self.circle_id)
-        except TicTacToeGame.DoesNotExist:
-            return None
+    async def _send_state(self):
+        state = await self._state_dict()
+        await self.send(text_data=json.dumps({
+            "type": "game_state",
+            "state": state
+        }))
 
     @database_sync_to_async
-    def get_game_state_dict(self):
+    def _state_dict(self):
         game, created = TicTacToeGame.objects.get_or_create(
             circle_id=self.circle_id,
             defaults={
-                'board': [[None, None, None], [None, None, None], [None, None, None]],
-                'current_turn': 'X'
+                "board": [[None, None, None],
+                          [None, None, None],
+                          [None, None, None]],
+                "current_turn": "X"
             }
         )
+
         return {
             "board": game.board,
             "current_turn": game.current_turn,
@@ -202,18 +191,10 @@ class TicTacToeConsumer(AsyncWebsocketConsumer):
         }
 
     @database_sync_to_async
-    def save_game_state(self, game):
-        game.save()
-
-    async def handle_leave_game(self):
-        await self.leave_game_state()
-        await self.broadcast_game_update()
-
-    @database_sync_to_async
-    def reset_game_state(self):
+    def _reset_game(self):
         TicTacToeGame.objects.filter(circle_id=self.circle_id).update(
             board=[[None, None, None], [None, None, None], [None, None, None]],
-            current_turn='X',
+            current_turn="X",
             winner=None,
             is_draw=False,
             player_x=None,
@@ -221,69 +202,80 @@ class TicTacToeConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def leave_game_state(self):
+    def _leave_game(self):
         try:
             game = TicTacToeGame.objects.get(circle_id=self.circle_id)
-            if game.player_x == self.user:
-                game.player_x = None
-            elif game.player_o == self.user:
-                game.player_o = None
-            
-            # If game was in progress and someone left, maybe reset? 
-            # For now just clearing the player slot is enough, 
-            # game logic handles missing players by preventing moves.
-            
-            game.save()
-        except TicTacToeGame.DoesNotExist:
-            pass
+        except:
+            return
+
+        if game.player_x == self.user:
+            game.player_x = None
+        elif game.player_o == self.user:
+            game.player_o = None
+
+        game.save()
 
     @database_sync_to_async
-    def assign_player(self, role):
+    def _assign(self, role):
         game, created = TicTacToeGame.objects.get_or_create(
             circle_id=self.circle_id,
             defaults={
-                'board': [[None, None, None], [None, None, None], [None, None, None]],
-                'current_turn': 'X'
+                "board": [[None, None, None],
+                          [None, None, None],
+                          [None, None, None]],
+                "current_turn": "X"
             }
         )
-        if role == 'X' and not game.player_x:
-            if game.player_o == self.user:
+
+        if role == "X":
+            if game.player_x or game.player_o == self.user:
                 return False
             game.player_x = self.user
-            game.save()
-            return True
-        elif role == 'O' and not game.player_o:
-            if game.player_x == self.user:
+
+        elif role == "O":
+            if game.player_o or game.player_x == self.user:
                 return False
             game.player_o = self.user
-            game.save()
-            return True
-        return False
 
-    # Auth Helpers (Same as Sudoku)
-    async def authenticate_user(self):
-        if self.scope.get("user") and self.scope["user"].is_authenticated:
-            return self.scope["user"]
-        token_key = self.get_token_from_query()
-        if not token_key:
+        else:
+            return False
+
+        game.save()
+        return True
+
+    async def _auth(self):
+        u = self.scope.get("user")
+
+        if u and u.is_authenticated:
+            return u
+
+        token = self._get_token()
+        if not token:
             return AnonymousUser()
-        return await self.get_user_from_token(token_key)
 
-    def get_token_from_query(self):
-        query_string = self.scope.get("query_string", b"").decode()
-        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
+        return await self._user_from_token(token)
+
+    def _get_token(self):
+        qs = self.scope.get("query_string", b"").decode()
+
+        params = {}
+        for p in qs.split("&"):
+            if "=" in p:
+                k, v = p.split("=")
+                params[k] = v
+
         return params.get("token")
 
     @database_sync_to_async
-    def get_user_from_token(self, token_key):
+    def _user_from_token(self, key):
         try:
-            return Token.objects.select_related("user").get(key=token_key).user
-        except Token.DoesNotExist:
+            return Token.objects.select_related("user").get(key=key).user
+        except:
             return AnonymousUser()
 
-    async def is_circle_member(self):
-        return await self.check_membership(self.user, self.circle_id)
+    async def _is_member(self):
+        return await self._check_member()
 
     @database_sync_to_async
-    def check_membership(self, user, circle_id):
-        return Circle.objects.filter(id=circle_id, members=user).exists()
+    def _check_member(self):
+        return Circle.objects.filter(id=self.circle_id, members=self.user).exists()

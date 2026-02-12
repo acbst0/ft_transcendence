@@ -9,11 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
-    """
-    WebSocket consumer responsible only for delivering
-    server-side notifications to authenticated users.
-    Client-to-server messages are not supported.
-    """
 
     async def connect(self):
         user = await self.authenticate_user()
@@ -25,39 +20,21 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         self.user_id = user.id
         self.group_name = f"notifications_{self.user_id}"
 
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
 
         await self.accept()
 
     async def disconnect(self, close_code):
         if hasattr(self, "group_name"):
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
-        """
-        Notification socket is read-only.
-        Any incoming message is ignored intentionally.
-        """
         logger.debug(
             "Ignored incoming message on notification socket",
             extra={"user_id": getattr(self.user, "id", None)}
         )
 
     async def send_notification(self, event):
-        """
-        Sends a notification payload to the connected client.
-        Expected event format:
-        {
-            "type": "send_notification",
-            "notification": {...}
-        }
-        """
         notification = event.get("notification")
         if not notification:
             logger.warning("Notification event received without payload")
@@ -76,9 +53,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     def get_token_from_query(self):
         query_string = self.scope.get("query_string", b"").decode()
-        params = dict(
-            param.split("=") for param in query_string.split("&") if "=" in param
-        )
+        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
         return params.get("token")
 
     @database_sync_to_async

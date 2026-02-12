@@ -1,11 +1,5 @@
-"""
-Custom Social Auth Pipeline Functions
-"""
-
 def create_user_profile(backend, user, response, *args, **kwargs):
-    """
-    Create UserProfile for OAuth users if it doesn't exist
-    """
+
     from core.models import UserProfile
     
     if user and not hasattr(user, 'profile'):
