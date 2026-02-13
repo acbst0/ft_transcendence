@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
+import KVKKModal from './KVKKModal';
+import TermsModal from './TermsModal';
 import './AuthModals.css';
 
 export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
@@ -83,12 +85,15 @@ export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 	const [kvkkAccepted, setKvkkAccepted] = useState(false);
 	const [error, setError] = useState('');
 
+    const [isKvkkOpen, setIsKvkkOpen] = useState(false);
+    const [isTermsOpen, setIsTermsOpen] = useState(false);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError('');
 
 		if (!kvkkAccepted) {
-			setError('You must accept the KVKK terms to register.');
+			setError('You must accept the terms to register.');
 			return;
 		}
 
@@ -103,7 +108,7 @@ export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 
 			if (response.ok) {
 				onClose();
-				if (onSuccess) onSuccess('Account created! Please login.');;
+				if (onSuccess) onSuccess('Account created! Please login.');
 			} else {
 				let msg = 'Registration failed';
 				if (data.username) msg = `Username: ${data.username[0]}`;
@@ -156,26 +161,28 @@ export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 						onChange={(e) => setPassword(e.target.value)}
 					/>
 				</div>
+                
 				<div className="form-group checkbox-group">
-				    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
-				        <input
-				            type="checkbox"
-				            checked={kvkkAccepted}
-				            onChange={(e) => setKvkkAccepted(e.target.checked)}
-				            style={{ width: 'auto', margin: 0 }}
-				        />
-				        <span style={{ color: 'var(--auth-text-color)' }}>
-				            I have read and accept the{' '}
-				            <a href="#" onClick={(e) => { e.preventDefault(); /* KVKK Modalını açacak fonksiyon buraya */ alert('KVKK terms...'); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
-				                KVKK
-				            </a>
-				            {' '}and{' '}
-				            <a href="#" onClick={(e) => { e.preventDefault(); /* Terms Modalını açacak fonksiyon buraya */ alert('Terms of Use...'); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
-				                Terms of Use
-				            </a>.
-				        </span>
-				    </label>
+					<label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+						<input
+							type="checkbox"
+							checked={kvkkAccepted}
+							onChange={(e) => setKvkkAccepted(e.target.checked)}
+							style={{ width: 'auto', margin: 0 }}
+						/>
+						<span style={{ color: 'var(--auth-text-color)' }}>
+							I have read and accept the{' '}
+							<a href="#" onClick={(e) => { e.preventDefault(); setIsKvkkOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
+								KVKK
+							</a>
+							{' '}and{' '}
+							<a href="#" onClick={(e) => { e.preventDefault(); setIsTermsOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
+								Terms of Use
+							</a>.
+						</span>
+					</label>
 				</div>
+
 				<button type="submit" className="primary-btn">Sign Up</button>
 
 				<div className="divider">
@@ -187,6 +194,10 @@ export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 					Google
 				</button>
 			</form>
+
+            {}
+            <KVKKModal isOpen={isKvkkOpen} onClose={() => setIsKvkkOpen(false)} />
+            <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
 		</Modal>
 	);
 };
