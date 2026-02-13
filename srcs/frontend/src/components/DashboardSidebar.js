@@ -1,20 +1,32 @@
 import React from 'react';
 import './DashboardSidebar.css';
 
-const SidebarLink = ({ icon, text, isActive, isOpen, onClick }) => (
+const SidebarLink = ({ icon, text, isActive, isOpen, onClick, notificationCount }) => (
 	<li className="nav-item">
 		<button
 			className={`nav-link w-100 d-flex align-items-center gap-3 ${isActive ? 'active' : 'text-body'}`}
 			onClick={onClick}
 			title={!isOpen ? text : ''}
 		>
-			<span className="fs-5 d-flex align-items-center justify-content-center sidebar-icon-width">{icon}</span>
-			{isOpen && <span className="text-truncate">{text}</span>}
+			<span className="fs-5 d-flex align-items-center justify-content-center sidebar-icon-width position-relative">
+				{icon}
+				{!isOpen && notificationCount > 0 && (
+					<span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.5rem' }}>
+						{notificationCount}
+					</span>
+				)}
+			</span>
+			{isOpen && (
+				<div className="d-flex justify-content-between align-items-center flex-grow-1">
+					<span className="text-truncate">{text}</span>
+					{notificationCount > 0 && <span className="badge bg-danger rounded-pill">{notificationCount}</span>}
+				</div>
+			)}
 		</button>
 	</li>
 );
 
-const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveView, chatOpen, setChatOpen, openChat, isMobile }) => {
+const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveView, chatOpen, setChatOpen, openChat, isMobile, unreadChatCount }) => {
 	return (
 		<aside
 			className={`d-flex flex-column flex-shrink-0 dashboard-sidebar ${isMobile ? 'mobile shadow-mobile' : 'desktop'} ${sidebarOpen ? 'open' : (isMobile ? '' : 'closed')}`}
@@ -61,6 +73,7 @@ const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveVie
 						isOpen={sidebarOpen}
 						isActive={chatOpen}
 						onClick={() => { chatOpen ? setChatOpen(false) : openChat(); if (isMobile) toggleSidebar(); }}
+						notificationCount={unreadChatCount}
 					/>
 					<SidebarLink
 						icon={<i className="fa-solid fa-border-all"></i>}

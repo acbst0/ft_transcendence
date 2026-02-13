@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import './DashboardTasks.css';
 
-const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCreateTask, openTaskDetail, onCreateCircle }) => {
+const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCreateTask, openTaskDetail, onCreateCircle, user }) => {
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [filterStatus, setFilterStatus] = useState('all');
@@ -23,6 +23,12 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 			result = result.filter(t => t.status !== 'done');
 		} else if (filterStatus === 'done') {
 			result = result.filter(t => t.status === 'done');
+		} else if (filterStatus === 'my_assignments') {
+			result = result.filter(t => {
+				if (t.task_type !== 'assignment') return false;
+				const isAssigned = (t.assignees && t.assignees.some(u => u.id === user?.id)) || (t.assigned_to && t.assigned_to.id === user?.id);
+				return isAssigned || ((!t.assignees || t.assignees.length === 0) && !t.assigned_to);
+			});
 		}
 		result.sort((a, b) => {
 			const dateA = new Date(a.created_at);
@@ -31,7 +37,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 		});
 
 		return result;
-	}, [tasks, searchQuery, filterStatus, sortOrder]);
+	}, [tasks, searchQuery, filterStatus, sortOrder, user]);
 
 	// Pagination hesaplamaları
 	const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
@@ -157,6 +163,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 							<option value="all">All Tasks</option>
 							<option value="active">Active</option>
 							<option value="done">Completed</option>
+							<option value="my_assignments">My Assignments</option>
 						</select>
 					</div>
 					<div className="col-6 col-md-3">

@@ -47,6 +47,13 @@ const Dashboard = () => {
 	}, []);
 
 	const [chatOpen, setChatOpen] = useState(false);
+	const chatOpenRef = React.useRef(chatOpen);
+	const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+	useEffect(() => {
+		chatOpenRef.current = chatOpen;
+		if (chatOpen) setUnreadChatCount(0);
+	}, [chatOpen]);
 
 	const [selectedEnv, setSelectedEnv] = useState(null);
 	const [myCircles, setMyCircles] = useState([]);
@@ -292,6 +299,11 @@ const Dashboard = () => {
 				const data = JSON.parse(event.data);
 				if (data.type === 'notification' && data.data) {
 					const notif = data.data;
+
+					if ((notif.type === 'direct_message' || notif.type === 'circle_message') && !chatOpenRef.current) {
+						setUnreadChatCount(prev => prev + 1);
+					}
+
 					setToasts(prev => [...prev, {
 						id: Date.now(),
 						sender: notif.sender,
@@ -421,6 +433,10 @@ const Dashboard = () => {
 						sender: data.sender,
 						timestamp: new Date().toISOString()
 					}]);
+
+					if (!chatOpenRef.current) {
+						setUnreadChatCount(prev => prev + 1);
+					}
 					scrollToBottom();
 				}
 			};
@@ -632,6 +648,7 @@ const Dashboard = () => {
 				setChatOpen={setChatOpen}
 				openChat={openChat}
 				isMobile={isMobile}
+				unreadChatCount={unreadChatCount}
 			/>
 
 			{isMobile && (sidebarOpen || chatOpen) && (
@@ -703,6 +720,7 @@ const Dashboard = () => {
 							setShowCreateTask={setShowCreateTask}
 							openTaskDetail={openTaskDetail}
 							onCreateCircle={() => selectEnv('create')}
+							user={user}
 						/>
 					)}
 				</main>

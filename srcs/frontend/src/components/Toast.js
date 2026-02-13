@@ -1,12 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const Toast = ({ message, onClose, onClick, duration = 5000 }) => {
+	const onCloseRef = useRef(onClose);
+
+	useEffect(() => {
+		onCloseRef.current = onClose;
+	}, [onClose]);
+
 	useEffect(() => {
 		const timer = setTimeout(() => {
-			onClose();
+			onCloseRef.current();
 		}, duration);
 		return () => clearTimeout(timer);
-	}, [duration, onClose]);
+	}, [duration]);
 
 	return (
 		<div className="toast show align-items-center bg-body border-secondary mb-2 toast-cursor" role="alert" aria-live="assertive" aria-atomic="true" onClick={onClick}>
