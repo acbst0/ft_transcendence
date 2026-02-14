@@ -108,3 +108,95 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Responsive: tablet ve küçük ekranlar */
+@media (max-width: 768px) {
+    .tictactoe-container {
+        min-height: auto;
+        padding: 1.25rem 1rem;
+        gap: 1.25rem;
+    }
+
+    .tictactoe-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .tictactoe-status {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .tictactoe-status .text-muted {
+        margin: 0;
+    }
+
+    .player-badge {
+        padding: 0.4rem 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .player-badge .btn {
+        margin-left: 0.25rem !important;
+    }
+
+    .tictactoe-board {
+        width: min(92vw, 320px);
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .tt-cell {
+        font-size: 2.25rem;
+        min-height: 0;
+    }
+
+    .game-result {
+        font-size: 1.15rem;
+        padding: 0.75rem;
+    }
+}
+
+/* Responsive: küçük telefonlar */
+@media (max-width: 480px) {
+    .tictactoe-container {
+        padding: 1rem 0.75rem;
+        gap: 1rem;
+    }
+
+    .tictactoe-header h2 {
+        font-size: 1.35rem;
+    }
+
+    .tictactoe-status {
+        font-size: 0.9rem;
+    }
+
+    .player-badge span:not(.fw-bold) {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tictactoe-board {
+        width: min(96vw, 280px);
+        padding: 6px;
+        gap: 6px;
+    }
+
+    .tt-cell {
+        font-size: 1.85rem;
+    }
+
+    .game-result {
+        font-size: 1rem;
+        padding: 0.6rem;
+    }
+
+    .tictactoe-controls {
+        font-size: 0.85rem;
+    }
+}

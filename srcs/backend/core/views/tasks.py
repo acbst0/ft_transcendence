@@ -25,16 +25,16 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user, circle=circle)
         
         try:
-             channel_layer = get_channel_layer()
-             async_to_sync(channel_layer.group_send)(
-                 f'chat_{circle.id}',
-                 {'type': 'task_update', 'action': 'create'}
-             )
-             
-             if serializer.instance.task_type == 'assignment':
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{circle.id}',
+                {'type': 'task_update', 'action': 'create'}
+            )
+            
+            if serializer.instance.task_type == 'assignment':
                 assignees = serializer.instance.assignees.all()
                 if assignees.exists():
-                     for assignee in assignees:
+                    for assignee in assignees:
                         if assignee != self.request.user:
                             async_to_sync(channel_layer.group_send)(
                                 f'notifications_{assignee.id}',
@@ -65,7 +65,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                                     }
                                 }
                             )
-             elif serializer.instance.task_type in ['note', 'checklist']:
+            elif serializer.instance.task_type in ['note', 'checklist']:
                  for member in circle.members.all():
                     if member.id != self.request.user.id:
                         async_to_sync(channel_layer.group_send)(

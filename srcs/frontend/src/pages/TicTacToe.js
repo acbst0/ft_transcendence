@@ -11,8 +11,6 @@ const TicTacToe = ({ circleId, showToast }) => {
 	const [currentUser, setCurrentUser] = useState(null);
 
 	const ws = useRef(null);
-
-	// Get current user from local storage
 	useEffect(() => {
 		const userStr = localStorage.getItem('user');
 		if (userStr) {
@@ -64,7 +62,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 	const handleCellClick = (row, col) => {
 		if (!isConnected || winner || isDraw || board[row][col]) return;
 
-		// Check turn
+	
 		if (turn === 'X' && players.X?.id !== currentUser?.id) return;
 		if (turn === 'O' && players.O?.id !== currentUser?.id) return;
 
