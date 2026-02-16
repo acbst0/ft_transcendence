@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import { LoginModal, RegisterModal } from './components/AuthModals';
-import Notification from './components/Notification'; 
-import './theme.css';
+import Notification from './components/Notification';
 
 function MainLayout() {
 	const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -14,6 +14,8 @@ function MainLayout() {
 	const [notification, setNotification] = useState({ message: '', type: '' });
 
 	const navigate = useNavigate();
+	const location = useLocation();
+	const isDashboard = location.pathname === '/dashboard';
 
 	const showNotify = (message, type = 'success') => {
 		setNotification({ message, type });
@@ -49,22 +51,25 @@ function MainLayout() {
 
 	return (
 		<>
-			{}
 			<Notification 
 				message={notification.message} 
 				type={notification.type} 
 				onClose={() => setNotification({ message: '', type: '' })} 
 			/>
 
-			<Navbar
-				onLoginClick={() => setIsLoginOpen(true)}
-				onRegisterClick={() => setIsRegisterOpen(true)}
-			/>
+			{!isDashboard && (
+				<Navbar
+					onLoginClick={() => setIsLoginOpen(true)}
+					onRegisterClick={() => setIsRegisterOpen(true)}
+				/>
+			)}
 			
 			<Routes>
 				<Route path="/" element={<Home />} />
 				<Route path="/dashboard" element={<Dashboard />} />
 			</Routes>
+
+			{!isDashboard && <Footer />}
 
 			<LoginModal
 				isOpen={isLoginOpen}
