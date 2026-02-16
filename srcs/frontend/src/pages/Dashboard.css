@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 
 :root {
-    /* Custom Color Palette */
     --palette-light: #dccae6;
     --palette-primary: #753696;
     --palette-secondary: #c993e6;
@@ -9,7 +8,6 @@
     --palette-success: #83ad6c;
     --palette-dark: #506e40;
 
-    /* Theme Variables - Light */
     --background: #f8f9fa;
     --surface: #ffffff;
     --text: #2c3e50;
@@ -25,7 +23,6 @@
     --radius-md: 12px;
     --radius-lg: 16px;
 
-    /* Sudoku Specific */
     --sudoku-bg: var(--surface);
     --sudoku-border: var(--primary-pale);
     --sudoku-cell-bg: rgba(201, 147, 230, 0.1);
@@ -41,9 +38,7 @@
 }
 
 [data-bs-theme="dark"] {
-    /* Theme Variables - Dark */
     --background: #0b0c15;
-    /* Deep Dark Background */
     --surface: #161722;
     --text: #e2e8f0;
     --text-muted: #94a3b8;
@@ -243,7 +238,7 @@ body {
     color: var(--text);
 }
 
-/* === Cards & Containers === */
+
 .card {
     background-color: var(--surface);
     border: none;

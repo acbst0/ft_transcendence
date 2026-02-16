@@ -16,8 +16,6 @@ const DashboardTopbar = ({
                     <span className="fw-bold fs-4">P</span>
                 </div>
             </div>
-
-            {/* Combobox */}
             <div className={`dropdown d-flex align-items-center topbar-combo-dropdown ${isMobile ? 'mobile' : 'desktop'}`}>
                 <button
                     className={`btn btn-outline-secondary dropdown-toggle d-flex align-items-center justify-content-between w-100 px-2 px-md-3 topbar-combo-btn ${isMobile ? 'mobile' : 'desktop'} ${comboOpen ? 'show' : ''}`}

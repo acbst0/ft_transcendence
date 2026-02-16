@@ -7,7 +7,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 	const [filterStatus, setFilterStatus] = useState('all');
 	const [sortOrder, setSortOrder] = useState('newest');
 	const [currentPage, setCurrentPage] = useState(1);
-	const [tasksPerPage] = useState(9); // 3x3 grid
+	const [tasksPerPage] = useState(9); 
 
 	const filteredTasks = useMemo(() => {
 		if (!tasks) return [];
@@ -39,24 +39,23 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 		return result;
 	}, [tasks, searchQuery, filterStatus, sortOrder, user]);
 
-	// Pagination hesaplamaları
+
 	const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
 	const indexOfLastTask = currentPage * tasksPerPage;
 	const indexOfFirstTask = indexOfLastTask - tasksPerPage;
 	const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
 
-	// Filtre değiştiğinde ilk sayfaya dön
 	useEffect(() => {
 		setCurrentPage(1);
 	}, [searchQuery, filterStatus, sortOrder]);
 
-	// Sayfa değiştir ve yukarı kaydır
+
 	const handlePageChange = (pageNumber) => {
 		setCurrentPage(pageNumber);
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
-	// Sayfa numaralarını oluştur
+	
 	const getPageNumbers = () => {
 		const pageNumbers = [];
 		const maxVisible = 5;
@@ -295,10 +294,9 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 				})}
 			</div>
 
-			{/* Pagination Controls */}
+		
 			{filteredTasks.length > tasksPerPage && (
 				<div className="d-flex justify-content-center align-items-center gap-2 mt-5 pagination-container">
-					{/* Previous Button */}
 					<button
 						className={`btn pagination-btn pagination-arrow ${currentPage === 1 ? 'disabled' : ''}`}
 						onClick={() => handlePageChange(currentPage - 1)}
@@ -307,8 +305,6 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					>
 						<i className="fa-solid fa-chevron-left"></i>
 					</button>
-
-					{/* Page Numbers */}
 					<div className="d-flex gap-2 pagination-numbers">
 						{getPageNumbers().map((pageNum, idx) => (
 							pageNum === '...' ? (
@@ -329,7 +325,6 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 						))}
 					</div>
 
-					{/* Next Button */}
 					<button
 						className={`btn pagination-btn pagination-arrow ${currentPage === totalPages ? 'disabled' : ''}`}
 						onClick={() => handlePageChange(currentPage + 1)}
