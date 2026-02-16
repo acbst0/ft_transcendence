@@ -1,29 +1,45 @@
-:root, [data-my-theme='light'] {
-  --color-primary: #753696;
-  --color-primary-light: #c993e6;
-  --color-primary-pale: #dccae6;
-  --color-success: #83ad6c;
-  --color-success-dark: #506e40;
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+:root,
+[data-my-theme='light'] {
+
+  --palette-light: #dccae6;
+  --palette-primary: #753696;
+  --palette-secondary: #c993e6;
+  --palette-accent: #83ad6c;
+  --palette-success: #83ad6c;
+  --palette-dark: #506e40;
+
+
+  --color-primary: var(--palette-primary);
+  --color-primary-light: var(--palette-secondary);
+  --color-primary-pale: var(--palette-light);
+  --color-success: var(--palette-success);
+  --color-success-dark: var(--palette-dark);
   --color-dark: #1e1e1e;
   --color-light: #FFFFFF;
-  --color-bg-tint: #FDFBFE;
-  --color-text-muted: #6b7280;
-  --border-color: transparent;
+  --color-bg-tint: #f8f9fa;
+  --color-text-muted: #6c757d;
+  --border-color: #e9ecef;
 
-  --primary: var(--color-primary);
-  --primary-hover: #5e2b7a;
-  --secondary: var(--color-primary-light);
-  --accent: var(--color-success);
+
+  --primary: var(--palette-primary);
+  --primary-hover: #5d2b78;
+  --primary-light: var(--palette-light);
+  --secondary: var(--palette-secondary);
+  --accent: var(--palette-success);
   --background: var(--color-bg-tint);
   --surface: var(--color-light);
   --surface-hover: #fcfaff;
-  --text: var(--color-dark);
+  --text: #2c3e50;
   --text-muted: var(--color-text-muted);
   --border: var(--border-color);
 
-  --radius-lg: 24px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
 
   --surface-purple: rgba(117, 54, 150, 0.08);
   --surface-purple-strong: rgba(117, 54, 150, 0.15);
@@ -32,10 +48,13 @@
   --surface-yellow: rgba(245, 158, 11, 0.12);
   --surface-yellow-strong: rgba(245, 158, 11, 0.2);
 
-  --shadow-sm: 0 4px 12px rgba(117, 54, 150, 0.05);
-  --shadow-md: 0 8px 24px rgba(117, 54, 150, 0.08);
-  --shadow-lg: 0 16px 40px rgba(117, 54, 150, 0.12);
-  --font-main: 'Poppins', sans-serif;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  --font-main: 'Quicksand', sans-serif;
+
 
   --bs-body-bg: var(--background);
   --bs-body-color: var(--text);
@@ -44,10 +63,11 @@
   --bs-secondary: var(--secondary);
   --bs-tertiary-bg: var(--surface);
   --bs-card-bg: var(--surface);
-  --bs-border-color: transparent;
+  --bs-border-color: var(--border);
   --bs-border-radius: var(--radius-md);
   --bs-border-radius-lg: var(--radius-lg);
   --bs-border-radius-sm: var(--radius-sm);
+
 
   --bg-home: #ffffff;
   --text-hero: #754496;
@@ -57,11 +77,11 @@
   --card-text-dark: #2b0b3c;
   --navbar-logo: #754496;
   --theme-btn-color: #333333;
-  --auth-modal-bg: #8367c7;  
+  --auth-modal-bg: #8367c7;
   --auth-text-color: #ffffff;
-  --auth-input-bg: #ffffff;  
+  --auth-input-bg: #ffffff;
   --auth-input-text: #000000;
-  --auth-modal-pr: #83ad6c; 
+  --auth-modal-pr: #83ad6c;
   --auth-divider: rgba(255, 255, 255, 0.2);
   --how-buton: #749c75;
   --reg-buton: #754496;
@@ -70,21 +90,27 @@
   --nav-bg: transparent;
 }
 
-[data-bs-theme="dark"], [data-my-theme='dark'] {
-  --background: #1e1e1e;
-  --surface: #2b2b2b;
-  --surface-hover: #333333;
-  --text: #Fdfbff;
-  --text-muted: #a0a0a0;
-  --border: #404040;
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+[data-bs-theme="dark"],
+[data-my-theme='dark'] {
+
+  --background: #0b0c15;
+  --surface: #161722;
+  --surface-hover: #1f2030;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #2a2b3d;
+
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
+
 
   --bs-body-bg: var(--background);
   --bs-body-color: var(--text);
   --bs-card-bg: var(--surface);
   --bs-border-color: var(--border);
+
 
   --bg-home: #1e1e1e;
   --text-hero: #ede6f5;
@@ -94,9 +120,9 @@
   --card-text-dark: #2b0b3c;
   --navbar-logo: #ffffff;
   --theme-btn-color: #ffffff;
-  --auth-modal-bg: #70587c;  
+  --auth-modal-bg: #70587c;
   --auth-text-color: #ffffff;
-  --auth-input-bg: #ffffff;  
+  --auth-input-bg: #ffffff;
   --auth-input-text: #000000;
   --auth-modal-pr: #749c75;
   --auth-divider: rgba(255, 255, 255, 0.1);
