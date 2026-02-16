@@ -31,11 +31,22 @@ const Sudoku = ({ circleId, showToast }) => {
 
 		ws.current.onmessage = (event) => {
 			const data = JSON.parse(event.data);
+			const parseBoard = (boardData) => {
+				if (!boardData) return Array(9).fill().map(() => Array(9).fill(0));
+				if (typeof boardData === 'string') {
+					try {
+						return JSON.parse(boardData);
+					} catch {
+						return Array(9).fill().map(() => Array(9).fill(0));
+					}
+				}
+				return boardData;
+			};
 
 			if (data.type === 'game_state') {
-				setBoard(data.board);
-				setInitialBoard(data.initial_board);
-				setSolution(data.solution);
+				setBoard(parseBoard(data.board));
+				setInitialBoard(parseBoard(data.initial_board));
+				setSolution(parseBoard(data.solution));
 				setIsSolved(data.is_solved);
 				setMistakes(data.mistakes);
 				setGameDifficulty(data.difficulty);
@@ -49,9 +60,9 @@ const Sudoku = ({ circleId, showToast }) => {
 				});
 				setMistakes(data.mistakes);
 			} else if (data.type === 'new_game') {
-				setBoard(data.board);
-				setInitialBoard(data.initial_board);
-				setSolution(data.solution);
+				setBoard(parseBoard(data.board));
+				setInitialBoard(parseBoard(data.initial_board));
+				setSolution(parseBoard(data.solution));
 				setIsSolved(false);
 				setMistakes(0);
 				setGameDifficulty(data.difficulty);

@@ -15,51 +15,48 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'avatar', 'is_online', 'is_favorited', 'bio', 'followers_count', 'following_count']
 
     def get_avatar(self, obj):
-        try:
-            if hasattr(obj, 'profile') and obj.profile.avatar:
-                return obj.profile.avatar.url
-        except:
-            pass
+        if not hasattr(obj, 'profile'):
+            return None
+        
+        profile = obj.profile
+        if profile and profile.avatar:
+            return profile.avatar.url
         return None
 
     def get_is_online(self, obj):
-        try:
-            if hasattr(obj, 'profile'):
-                return obj.profile.is_online
-        except:
-            pass
-        return False
+        if not hasattr(obj, 'profile'):
+            return False
+        
+        return obj.profile.is_online if obj.profile else False
 
     def get_is_favorited(self, obj):
-        try:
-            request = self.context.get('request')
-            if request and hasattr(request, 'user') and request.user.is_authenticated:
-                return request.user.profile.favorites.filter(id=obj.id).exists()
-        except:
-            pass
-        return False
+        request = self.context.get('request')
+        
+        if not request or not hasattr(request, 'user'):
+            return False
+        
+        if not request.user.is_authenticated:
+            return False
+        
+        if not hasattr(request.user, 'profile'):
+            return False
+        
+        return request.user.profile.favorites.filter(id=obj.id).exists()
 
     def get_bio(self, obj):
-        try:
-            if hasattr(obj, 'profile'):
-                return obj.profile.bio
-        except:
-            pass
-        return ""
+        if not hasattr(obj, 'profile'):
+            return ""
+        
+        return obj.profile.bio if obj.profile else ""
 
     def get_followers_count(self, obj):
-        try:
-            return obj.favorited_by.count()
-        except Exception as e:
-            return 0
+        return obj.favorited_by.count()
 
     def get_following_count(self, obj):
-        try:
-            if hasattr(obj, 'profile'):
-                return obj.profile.favorites.count()
-        except:
-            pass
-        return 0
+        if not hasattr(obj, 'profile'):
+            return 0
+        
+        return obj.profile.favorites.count() if obj.profile else 0
 
 class ChecklistItemSerializer(serializers.ModelSerializer):
     class Meta:
