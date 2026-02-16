@@ -24,12 +24,7 @@ const Toast = ({ message, type = 'success', onClose, onClick, duration = 3000 })
                     <div style={{ fontSize: '13px', opacity: '0.9' }}>{message.content}</div>
                 </div>
             </div>
-            <button 
-                onClick={(e) => { e.stopPropagation(); onClose(); }} 
-                className="notification-close"
-            >
-                &times;
-            </button>
+            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="notification-close">&times;</button>
         </div>
     );
 };

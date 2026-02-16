@@ -45,34 +45,17 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 				{error && <div className="error-message" style={{ color: '#ff4d4f', fontSize: '14px' }}>{error}</div>}
 				<div className="form-group">
 					<label>Username</label>
-					<input
-						type="text"
-						placeholder="Enter your username"
-						className="glass-input"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-					/>
+					<input type="text" placeholder="Enter your username" className="glass-input" value={username} onChange={(e) => setUsername(e.target.value)}/>
 				</div>
 				<div className="form-group">
 					<label>Password</label>
-					<input
-						type="password"
-						placeholder="Enter your password"
-						className="glass-input"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+					<input type="password" placeholder="Enter your password" className="glass-input" value={password} onChange={(e) => setPassword(e.target.value)}/>
 				</div>
 				<button type="submit" className="primary-btn">Sign In</button>
 
-				<div className="divider">
-					<span>or continue with</span>
-				</div>
+				<div className="divider"><span>or continue with</span></div>
 
-				<button type="button" className="google-btn" onClick={handleGoogleLogin}>
-					<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
-					Google
-				</button>
+				<button type="button" className="google-btn" onClick={handleGoogleLogin}><img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />Google</button>
 			</form>
 		</Modal>
 	);
@@ -133,66 +116,29 @@ export const RegisterModal = ({ isOpen, onClose, onSuccess }) => {
 				{error && <div className="error-message" style={{ color: '#ff4d4f', fontSize: '14px' }}>{error}</div>}
 				<div className="form-group">
 					<label>Username</label>
-					<input
-						type="text"
-						placeholder="Choose a username"
-						className="glass-input"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-					/>
+					<input type="text" placeholder="Choose a username" className="glass-input" value={username} onChange={(e) => setUsername(e.target.value)}/>
 				</div>
 				<div className="form-group">
 					<label>Email</label>
-					<input
-						type="email"
-						placeholder="Enter your email"
-						className="glass-input"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
+					<input type="email" placeholder="Enter your email" className="glass-input" value={email} onChange={(e) => setEmail(e.target.value)}/>
 				</div>
 				<div className="form-group">
 					<label>Password</label>
-					<input
-						type="password"
-						placeholder="Choose a password"
-						className="glass-input"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+					<input type="password" placeholder="Choose a password" className="glass-input" value={password} onChange={(e) => setPassword(e.target.value)}/>
 				</div>
                 
 				<div className="form-group checkbox-group">
 					<label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
-						<input
-							type="checkbox"
-							checked={kvkkAccepted}
-							onChange={(e) => setKvkkAccepted(e.target.checked)}
-							style={{ width: 'auto', margin: 0 }}
-						/>
-						<span style={{ color: 'var(--auth-text-color)' }}>
-							I have read and accept the{' '}
-							<a href="#" onClick={(e) => { e.preventDefault(); setIsKvkkOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
-								KVKK
-							</a>
-							{' '}and{' '}
-							<a href="#" onClick={(e) => { e.preventDefault(); setIsTermsOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>
-								Terms of Use
-							</a>.
-						</span>
+						<input type="checkbox" checked={kvkkAccepted} onChange={(e) => setKvkkAccepted(e.target.checked)} style={{ width: 'auto', margin: 0 }}/>
+						<span style={{ color: 'var(--auth-text-color)' }}>I have read and accept the{' '}<a href="#" onClick={(e) => { e.preventDefault(); setIsKvkkOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>KVKK</a>{' '}and{' '}<a href="#" onClick={(e) => { e.preventDefault(); setIsTermsOpen(true); }} style={{ color: '#390f50', fontWeight: 'bold', textDecoration: 'underline' }}>Terms of Use</a>.</span>
 					</label>
 				</div>
 
 				<button type="submit" className="primary-btn">Sign Up</button>
 
-				<div className="divider">
-					<span>or continue with</span>
-				</div>
+				<div className="divider"><span>or continue with</span></div>
 
-				<button type="button" className="google-btn" onClick={handleGoogleRegister}>
-					<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
-					Google
-				</button>
+				<button type="button" className="google-btn" onClick={handleGoogleRegister}><img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />Google</button>
 			</form>
 
             {}

@@ -14,12 +14,7 @@ const Home = () => {
           <p className="hero-subtitle">Notes, tasks, and a little Sudoku break—all in one place.</p>
 
           <div className="toggle-area">
-            <button
-              className="btn-how-it-works"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              HOW IT WORKS
-            </button>
+            <button className="btn-how-it-works" onClick={() => setIsOpen(!isOpen)}>HOW IT WORKS</button>
 
             {isOpen && (
               <div className="how-it-works-box mx-auto"> { }

@@ -51,17 +51,10 @@ function MainLayout() {
 
 	return (
 		<>
-			<Notification 
-				message={notification.message} 
-				type={notification.type} 
-				onClose={() => setNotification({ message: '', type: '' })} 
-			/>
+			<Notification message={notification.message} type={notification.type} onClose={() => setNotification({ message: '', type: '' })}/>
 
 			{!isDashboard && (
-				<Navbar
-					onLoginClick={() => setIsLoginOpen(true)}
-					onRegisterClick={() => setIsRegisterOpen(true)}
-				/>
+				<Navbar onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)}/>
 			)}
 			
 			<Routes>
@@ -71,29 +64,16 @@ function MainLayout() {
 
 			{!isDashboard && <Footer />}
 
-			<LoginModal
-				isOpen={isLoginOpen}
-				onClose={() => setIsLoginOpen(false)}
-				onSuccess={handleLoginSuccess}
-			/>
+			<LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSuccess={handleLoginSuccess}/>
 			
-			<RegisterModal
-				isOpen={isRegisterOpen}
-				onClose={() => setIsRegisterOpen(false)}
-				onSuccess={handleRegisterSuccess} 
-			/>
+			<RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} onSuccess={handleRegisterSuccess}/>
 		</>
 	);
 }
 
 function App() {
 	return (
-		<Router
-			future={{
-				v7_startTransition: true,
-				v7_relativeSplatPath: true
-			}}
-		>
+		<Router future={{v7_startTransition: true, v7_relativeSplatPath: true }}>
 			<MainLayout />
 		</Router>
 	);
