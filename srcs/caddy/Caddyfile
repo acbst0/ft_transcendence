@@ -20,9 +20,8 @@
     }
 
     handle /media/* {
-        reverse_proxy backend:8000 {
-            header_up X-Forwarded-Proto https
-        }
+        root * /data
+        file_server
     }
 
     handle /ws/chat/* {
