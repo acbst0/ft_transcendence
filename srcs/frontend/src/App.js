@@ -62,7 +62,7 @@ function MainLayout() {
 				<Route path="/dashboard" element={<Dashboard />} />
 			</Routes>
 
-			{!isDashboard && <Footer />}
+			<Footer />
 
 			<LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSuccess={handleLoginSuccess}/>
 			

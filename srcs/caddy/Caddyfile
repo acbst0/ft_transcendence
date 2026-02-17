@@ -8,35 +8,51 @@
     tls /etc/caddy/server.crt /etc/caddy/server.key
 
     handle /api/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /auth/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /media/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /ws/chat/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /ws/notifications/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /ws/sudoku/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /ws/tictactoe/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle /ws/online/* {
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto https
+        }
     }
 
     handle {

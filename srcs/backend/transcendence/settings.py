@@ -160,6 +160,12 @@ SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
 SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/api/auth/google/callback/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/?oauth_error=login_failed'
 
+# Force HTTPS for OAuth redirects (important for reverse proxy setup)
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+
+# Trust proxy headers for HTTPS detection
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
@@ -172,4 +178,3 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
     'core.pipeline.create_user_profile',
 )
-

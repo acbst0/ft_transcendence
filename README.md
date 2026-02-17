@@ -265,16 +265,33 @@ This schema supports real-time collaboration, task management, and interactive f
 1. Create environment configuration:
 
 ```bash
-cp .env.example .env
+cd srcs
+cp .env-temp .env
 ```
 
-2. Build and start the application:
+2. Configure Google OAuth (if needed):
+   - See `GOOGLE_OAUTH_SETUP.md` for detailed instructions
+   - Update `.env` file with your Google OAuth credentials
+
+3. Build and start the application:
 
 ```bash
-docker-compose up --build
+cd ..  # Return to project root
+make
 ```
 
-3. Open the application in your browser according to your docker configuration.
+4. Open the application in your browser:
+
+```
+https://localhost:8443
+```
+
+**Note:** The application runs on custom ports:
+- HTTPS: **8443** (recommended)
+- HTTP: **8080** (redirects to HTTPS)
+
+**SSL Certificate Warning:** On first access, your browser will show a security warning because we use a self-signed certificate. This is normal for local development. Click "Advanced" and proceed to localhost.
+
 
 ### Security Notes
 
