@@ -9,76 +9,76 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 	const [currentPage, setCurrentPage] = useState(1);
 	const [tasksPerPage] = useState(9); 
 
-	const filteredTasks = useMemo(() => {
+	const fltrTask = useMemo(() => {
 		if (!tasks) return [];
-		let result = [...tasks];
+		let index = [...tasks];
 		if (searchQuery.trim()) {
 			const lowerQuery = searchQuery.toLowerCase();
-			result = result.filter(t =>
+			index = index.filter(t =>
 				t.title.toLowerCase().includes(lowerQuery) ||
 				(t.description && t.description.toLowerCase().includes(lowerQuery))
 			);
 		}
 		if (filterStatus === 'active') {
-			result = result.filter(t => t.status !== 'done');
+			index = index.filter(t => t.status !== 'done');
 		} else if (filterStatus === 'done') {
-			result = result.filter(t => t.status === 'done');
+			index = index.filter(t => t.status === 'done');
 		} else if (filterStatus === 'my_assignments') {
-			result = result.filter(t => {
+			index = index.filter(t => {
 				if (t.task_type !== 'assignment') return false;
 				const isAssigned = (t.assignees && t.assignees.some(u => u.id === user?.id)) || (t.assigned_to && t.assigned_to.id === user?.id);
 				return isAssigned || ((!t.assignees || t.assignees.length === 0) && !t.assigned_to);
 			});
 		}
-		result.sort((a, b) => {
+		index.sort((a, b) => {
 			const dateA = new Date(a.created_at);
 			const dateB = new Date(b.created_at);
 			return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
 		});
 
-		return result;
+		return index;
 	}, [tasks, searchQuery, filterStatus, sortOrder, user]);
 
 
-	const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+	const pageNumber = Math.ceil(fltrTask.length / tasksPerPage);
 	const indexOfLastTask = currentPage * tasksPerPage;
 	const indexOfFirstTask = indexOfLastTask - tasksPerPage;
-	const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+	const showTask = fltrTask.slice(indexOfFirstTask, indexOfLastTask);
 
 	useEffect(() => {
 		setCurrentPage(1);
 	}, [searchQuery, filterStatus, sortOrder]);
 
 
-	const handlePageChange = (pageNumber) => {
+	const changePage = (pageNumber) => {
 		setCurrentPage(pageNumber);
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
 	
-	const getPageNumbers = () => {
+	const getPageNbr = () => {
 		const pageNumbers = [];
 		const maxVisible = 5;
 
-		if (totalPages <= maxVisible) {
-			for (let i = 1; i <= totalPages; i++) {
+		if (pageNumber <= maxVisible) {
+			for (let i = 1; i <= pageNumber; i++) {
 				pageNumbers.push(i);
 			}
 		} else {
 			if (currentPage <= 3) {
 				for (let i = 1; i <= 4; i++) pageNumbers.push(i);
 				pageNumbers.push('...');
-				pageNumbers.push(totalPages);
-			} else if (currentPage >= totalPages - 2) {
+				pageNumbers.push(pageNumber);
+			} else if (currentPage >= pageNumber - 2) {
 				pageNumbers.push(1);
 				pageNumbers.push('...');
-				for (let i = totalPages - 3; i <= totalPages; i++) pageNumbers.push(i);
+				for (let i = pageNumber - 3; i <= pageNumber; i++) pageNumbers.push(i);
 			} else {
 				pageNumbers.push(1);
 				pageNumbers.push('...');
 				for (let i = currentPage - 1; i <= currentPage + 1; i++) pageNumbers.push(i);
 				pageNumbers.push('...');
-				pageNumbers.push(totalPages);
+				pageNumbers.push(pageNumber);
 			}
 		}
 
@@ -141,7 +141,7 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 
 			<div className="d-flex justify-content-between align-items-center mb-3">
 				<div className="text-muted small">
-					Showing {indexOfFirstTask + 1}-{Math.min(indexOfLastTask, filteredTasks.length)} of {filteredTasks.length} tasks
+					Showing {indexOfFirstTask + 1}-{Math.min(indexOfLastTask, fltrTask.length)} of {fltrTask.length} tasks
 				</div>
 			</div>
 
@@ -157,13 +157,13 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 					</div>
 				)}
 
-				{tasks.length > 0 && filteredTasks.length === 0 && (
+				{tasks.length > 0 && fltrTask.length === 0 && (
 					<div className="col-12 text-center py-5">
 						<p className="text-muted">No tasks found matching your criteria.</p>
 					</div>
 				)}
 
-				{currentTasks.map((task, index) => {
+				{showTask.map((task, index) => {
 					const taskIcons = {
 						note: 'fa-note-sticky',
 						checklist: 'fa-list-check',
@@ -231,26 +231,26 @@ const DashboardTasks = ({ selectedEnv, tasks, setPreselectedAssignee, setShowCre
 			</div>
 
 		
-			{filteredTasks.length > tasksPerPage && (
+			{fltrTask.length > tasksPerPage && (
 				<div className="d-flex justify-content-center align-items-center gap-2 mt-5 pagination-container">
-					<button className={`btn pagination-btn pagination-arrow ${currentPage === 1 ? 'disabled' : ''}`} onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page">
+					<button className={`btn pagination-btn pagination-arrow ${currentPage === 1 ? 'disabled' : ''}`} onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page">
 						<i className="fa-solid fa-chevron-left"></i>
 					</button>
 					<div className="d-flex gap-2 pagination-numbers">
-						{getPageNumbers().map((pageNum, idx) => (
+						{getPageNbr().map((pageNum, idx) => (
 							pageNum === '...' ? (
 								<span key={`ellipsis-${idx}`} className="pagination-ellipsis">
 									...
 								</span>
 							) : (
-								<button key={pageNum} className={`btn pagination-btn pagination-number ${currentPage === pageNum ? 'active' : ''}`} onClick={() => handlePageChange(pageNum)} aria-label={`Page ${pageNum}`} aria-current={currentPage === pageNum ? 'page' : undefined}>
+								<button key={pageNum} className={`btn pagination-btn pagination-number ${currentPage === pageNum ? 'active' : ''}`} onClick={() => changePage(pageNum)} aria-label={`Page ${pageNum}`} aria-current={currentPage === pageNum ? 'page' : undefined}>
 									{pageNum}
 								</button>
 							)
 						))}
 					</div>
 
-					<button className={`btn pagination-btn pagination-arrow ${currentPage === totalPages ? 'disabled' : ''}`} onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} aria-label="Next page">
+					<button className={`btn pagination-btn pagination-arrow ${currentPage === pageNumber ? 'disabled' : ''}`} onClick={() => changePage(currentPage + 1)} disabled={currentPage === pageNumber} aria-label="Next page">
 						<i className="fa-solid fa-chevron-right"></i>
 					</button>
 				</div>
