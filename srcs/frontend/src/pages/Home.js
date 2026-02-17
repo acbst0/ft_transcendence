@@ -57,8 +57,8 @@ const Home = () => {
             <div className="feature-card light-mint w-100">
               <i className="fa-solid fa-puzzle-piece card-icon"></i>
               <div className="card-info">
-                <h3>SUDOKU BREAK</h3>
-                <p>Relax your mind with a puzzle between your tasks.</p>
+                <h3>GAMES</h3>
+                <p>Relax your mind with a game between your tasks.</p>
               </div>
             </div>
           </div>
