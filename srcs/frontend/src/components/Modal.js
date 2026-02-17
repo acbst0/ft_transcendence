@@ -6,12 +6,14 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container glass" onClick={(e) => e.stopPropagation()}>
+      {}
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
-        <div className="modal-content">
+        {}
+        <div className="planora-modal-body">
           {children}
         </div>
       </div>

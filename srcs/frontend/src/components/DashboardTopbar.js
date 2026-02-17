@@ -8,23 +8,14 @@ const DashboardTopbar = ({
     toggleSidebar, isMobile
 }) => {
     return (
-        <header 
-            className="navbar navbar-expand px-3 px-md-4 dashboard-topbar" 
-        >
+        <header className="navbar navbar-expand px-3 px-md-4 dashboard-topbar">
             <div className="d-md-none me-3" onClick={toggleSidebar} style={{ cursor: 'pointer' }}>
                 <div className="d-flex align-items-center justify-content-center rounded-3" style={{ width: '42px', height: '42px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
                     <span className="fw-bold fs-4">P</span>
                 </div>
             </div>
-
-            {/* Combobox */}
             <div className={`dropdown d-flex align-items-center topbar-combo-dropdown ${isMobile ? 'mobile' : 'desktop'}`}>
-                <button
-                    className={`btn btn-outline-secondary dropdown-toggle d-flex align-items-center justify-content-between w-100 px-2 px-md-3 topbar-combo-btn ${isMobile ? 'mobile' : 'desktop'} ${comboOpen ? 'show' : ''}`}
-                    type="button"
-                    aria-expanded={comboOpen}
-                    onClick={(e) => { e.stopPropagation(); toggleCombo(); }}
-                >
+                <button className={`btn btn-outline-secondary dropdown-toggle d-flex align-items-center justify-content-between w-100 px-2 px-md-3 topbar-combo-btn ${isMobile ? 'mobile' : 'desktop'} ${comboOpen ? 'show' : ''}`} type="button" aria-expanded={comboOpen} onClick={(e) => { e.stopPropagation(); toggleCombo(); }}>
                     <span className="text-truncate fw-medium">{selectedEnv ? selectedEnv.name : 'Select Circle'}</span>
                 </button>
                 <ul className={`dropdown-menu shadow topbar-combo-menu ${comboOpen ? 'show' : ''}`}>
@@ -38,18 +29,13 @@ const DashboardTopbar = ({
                     ))}
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                        <button 
-                            className={`dropdown-item text-primary fw-medium d-flex align-items-center ${isMobile ? 'py-3' : ''}`} 
-                            onClick={() => selectEnv('create')}
-                        >
+                        <button className={`dropdown-item text-primary fw-medium d-flex align-items-center ${isMobile ? 'py-3' : ''}`} onClick={() => selectEnv('create')}>
                             <i className="fa-solid fa-plus me-2"></i>
                             <span className="text-truncate">Create New Circle</span>
                         </button>
                     </li>
                     <li>
-                        <button className="dropdown-item fw-medium" onClick={() => selectEnv('join')}>
-                            <i className="fa-solid fa-hashtag me-2"></i> Join with Code
-                        </button>
+                        <button className="dropdown-item fw-medium" onClick={() => selectEnv('join')}><i className="fa-solid fa-hashtag me-2"></i> Join with Code</button>
                     </li>
                     {selectedEnv && (
                         <>
@@ -78,10 +64,7 @@ const DashboardTopbar = ({
                 )}
 
                 <div className="position-relative">
-                    <button 
-                        className={`btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-secondary position-relative topbar-icon-btn notification-btn ${isMobile ? 'mobile' : ''}`} 
-                        onClick={() => setShowNotifications(!showNotifications)}
-                    >
+                    <button className={`btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0 border-secondary position-relative topbar-icon-btn notification-btn ${isMobile ? 'mobile' : ''}`} onClick={() => setShowNotifications(!showNotifications)}>
                         <i className={`fa-solid fa-bell ${isMobile ? 'invite-icon-mobile' : ''}`}></i>
                         {notifications.length > 0 && (
                             <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark">
@@ -156,10 +139,7 @@ const DashboardTopbar = ({
                     </div>
                 )}
 
-                <div 
-                    className={`d-flex align-items-center gap-2 user-profile-pill ${isMobile ? 'p-0 border-0 mobile' : 'px-3 py-1 rounded-pill border border-secondary bg-body-tertiary'}`} 
-                    onClick={openSettings}
-                >
+                <div className={`d-flex align-items-center gap-2 user-profile-pill ${isMobile ? 'p-0 border-0 mobile' : 'px-3 py-1 rounded-pill border border-secondary bg-body-tertiary'}`} onClick={openSettings}>
                     {user.avatar ?
                         <img src={user.avatar} alt="Me" className={`rounded-circle object-fit-cover user-avatar-small ${isMobile ? 'mobile' : ''}`} /> :
                         <span className={`d-flex align-items-center justify-content-center rounded-circle user-icon-placeholder ${isMobile ? 'bg-secondary text-white mobile' : ''}`}>

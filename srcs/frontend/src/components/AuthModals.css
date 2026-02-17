@@ -9,14 +9,12 @@
 	flex-direction: column;
 	gap: 8px;
 }
-.modal-content {
-    background-color: var(--auth-modal-bg) !important;
-    color: var(--auth-text-color) !important;
-    border-radius: 20px;
-    font-family: 'Quicksand', sans-serif;
-    border-radius: 20px;
-    padding: 30px 20px !important; 
-	box-shadow: none !important; 
+
+
+.planora-wrapper .planora-modal-body {
+    background-color: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
 }
 
 .glass-input {
@@ -69,12 +67,12 @@
 
 .glass-input:focus {
 	background: rgba(255, 255, 255, 0.1);
-	border-color: var(--primary);
+	border-color: var(--pri);
 	outline: none;
 }
 
 .primary-btn {
-	background: var(--primary);
+	background: var(--pri);
 	color: white;
 	padding: 14px;
 	border-radius: var(--radius-sm);

@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import { LoginModal, RegisterModal } from './components/AuthModals';
-import Notification from './components/Notification'; 
-import './theme.css';
+import Notification from './components/Notification';
 
 function MainLayout() {
 	const [isLoginOpen, setIsLoginOpen] = useState(false);
 	const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 	
-	// Bildirim için state tanımlıyoruz
 	const [notification, setNotification] = useState({ message: '', type: '' });
 
 	const navigate = useNavigate();
+	const location = useLocation();
+	const isDashboard = location.pathname === '/dashboard';
 
-	// Bildirimi göstermek için yardımcı fonksiyon
 	const showNotify = (message, type = 'success') => {
 		setNotification({ message, type });
 	};
@@ -26,7 +26,6 @@ function MainLayout() {
 		navigate('/dashboard');
 	};
 
-	// Kayıt başarılı olduğunda çalışacak fonksiyon
 	const handleRegisterSuccess = () => {
 		setIsRegisterOpen(false);
 		showNotify('Account created successfully! Please login.', 'success');
@@ -52,46 +51,29 @@ function MainLayout() {
 
 	return (
 		<>
-			{}
-			<Notification 
-				message={notification.message} 
-				type={notification.type} 
-				onClose={() => setNotification({ message: '', type: '' })} 
-			/>
+			<Notification message={notification.message} type={notification.type} onClose={() => setNotification({ message: '', type: '' })}/>
 
-			<Navbar
-				onLoginClick={() => setIsLoginOpen(true)}
-				onRegisterClick={() => setIsRegisterOpen(true)}
-			/>
+			{!isDashboard && (
+				<Navbar onLoginClick={() => setIsLoginOpen(true)} onRegisterClick={() => setIsRegisterOpen(true)}/>
+			)}
 			
 			<Routes>
 				<Route path="/" element={<Home />} />
 				<Route path="/dashboard" element={<Dashboard />} />
 			</Routes>
 
-			<LoginModal
-				isOpen={isLoginOpen}
-				onClose={() => setIsLoginOpen(false)}
-				onSuccess={handleLoginSuccess}
-			/>
+			{!isDashboard && <Footer />}
+
+			<LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSuccess={handleLoginSuccess}/>
 			
-			<RegisterModal
-				isOpen={isRegisterOpen}
-				onClose={() => setIsRegisterOpen(false)}
-				onSuccess={handleRegisterSuccess} 
-			/>
+			<RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} onSuccess={handleRegisterSuccess}/>
 		</>
 	);
 }
 
 function App() {
 	return (
-		<Router
-			future={{
-				v7_startTransition: true,
-				v7_relativeSplatPath: true
-			}}
-		>
+		<Router future={{v7_startTransition: true, v7_relativeSplatPath: true }}>
 			<MainLayout />
 		</Router>
 	);

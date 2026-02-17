@@ -40,18 +40,14 @@ class SudokuGenerator {
 	}
 
 	generate(difficulty = 'easy') {
-		// Reset board
 		this.board = Array(9).fill().map(() => Array(9).fill(0));
 
-		// Fill diagonal boxes (independent of each other)
 		for (let i = 0; i < 9; i = i + 3) {
 			this.fillBox(i, i);
 		}
 
-		// Solve the rest
 		this.solve(this.board);
 
-		// Remove numbers based on difficulty
 		const attempts = difficulty === 'hard' ? 50 : difficulty === 'medium' ? 40 : 30;
 		const finalBoard = this.board.map(row => [...row]);
 

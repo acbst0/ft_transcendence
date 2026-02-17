@@ -1,32 +1,32 @@
 import React from 'react';
 import './DashboardSidebar.css';
 
-const SidebarLink = ({ icon, text, isActive, isOpen, onClick }) => (
+const SidebarLink = ({ icon, text, isActive, isOpen, onClick, notificationCount }) => (
 	<li className="nav-item">
-		<button
-			className={`nav-link w-100 d-flex align-items-center gap-3 ${isActive ? 'active' : 'text-body'}`}
-			onClick={onClick}
-			title={!isOpen ? text : ''}
-		>
-			<span className="fs-5 d-flex align-items-center justify-content-center sidebar-icon-width">{icon}</span>
-			{isOpen && <span className="text-truncate">{text}</span>}
+		<button className={`nav-link w-100 d-flex align-items-center gap-3 ${isActive ? 'active' : 'text-body'}`} onClick={onClick} title={!isOpen ? text : ''}>
+			<span className="fs-5 d-flex align-items-center justify-content-center sidebar-icon-width position-relative">
+				{icon}
+				{!isOpen && notificationCount > 0 && (
+					<span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.5rem' }}>{notificationCount}</span>
+				)}
+			</span>
+			{isOpen && (
+				<div className="d-flex justify-content-between align-items-center flex-grow-1">
+					<span className="text-truncate">{text}</span>{notificationCount > 0 && <span className="badge bg-danger rounded-pill">{notificationCount}</span>}
+				</div>
+			)}
 		</button>
 	</li>
 );
 
-const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveView, chatOpen, setChatOpen, openChat, isMobile }) => {
+const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveView, chatOpen, setChatOpen, openChat, isMobile, unreadChatCount }) => {
 	return (
-		<aside
-			className={`d-flex flex-column flex-shrink-0 dashboard-sidebar ${isMobile ? 'mobile shadow-mobile' : 'desktop'} ${sidebarOpen ? 'open' : (isMobile ? '' : 'closed')}`}
-		>
+		<aside className={`d-flex flex-column flex-shrink-0 dashboard-sidebar ${isMobile ? 'mobile shadow-mobile' : 'desktop'} ${sidebarOpen ? 'open' : (isMobile ? '' : 'closed')}`}>
 			<div className={`d-flex align-items-center ${sidebarOpen ? 'justify-content-between' : 'justify-content-center'} sidebar-header`} style={{ padding: sidebarOpen ? '' : '0' }}>
 				{sidebarOpen ? (
 					<>
 						<div className="fw-bold fs-4 text-primary">PLANORA</div>
-						<button
-							className="btn btn-sm btn-outline-secondary border-0"
-							onClick={toggleSidebar}
-						>
+						<button className="btn btn-sm btn-outline-secondary border-0" onClick={toggleSidebar}>
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 								<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
 							</svg>
@@ -41,48 +41,12 @@ const DashboardSidebar = ({ sidebarOpen, toggleSidebar, activeView, setActiveVie
 
 			<div className="flex-grow-1 overflow-y-auto overflow-x-hidden p-2">
 				<ul className="nav nav-pills flex-column gap-1">
-					<SidebarLink
-						icon={<i className="fa-solid fa-house"></i>}
-						text="Dashboard"
-						isOpen={sidebarOpen}
-						isActive={activeView === 'dashboard'}
-						onClick={() => { setActiveView('dashboard'); if (isMobile) toggleSidebar(); }}
-					/>
-					<SidebarLink
-						icon={<i className="fa-solid fa-users"></i>}
-						text="Members"
-						isOpen={sidebarOpen}
-						isActive={activeView === 'members'}
-						onClick={() => { setActiveView('members'); if (isMobile) toggleSidebar(); }}
-					/>
-					<SidebarLink
-						icon={<i className="fa-solid fa-comments"></i>}
-						text="Chat"
-						isOpen={sidebarOpen}
-						isActive={chatOpen}
-						onClick={() => { chatOpen ? setChatOpen(false) : openChat(); if (isMobile) toggleSidebar(); }}
-					/>
-					<SidebarLink
-						icon={<i className="fa-solid fa-border-all"></i>}
-						text="Sudoku"
-						isOpen={sidebarOpen}
-						isActive={activeView === 'sudoku'}
-						onClick={() => { setActiveView('sudoku'); if (isMobile) toggleSidebar(); }}
-					/>
-					<SidebarLink
-						icon={<i className="fa-solid fa-xmarks-lines"></i>}
-						text="Tic-Tac-Toe"
-						isOpen={sidebarOpen}
-						isActive={activeView === 'tictactoe'}
-						onClick={() => { setActiveView('tictactoe'); if (isMobile) toggleSidebar(); }}
-					/>
-					<SidebarLink
-						icon={<i className="fa-solid fa-gears"></i>}
-						text="Settings"
-						isOpen={sidebarOpen}
-						isActive={activeView === 'settings'}
-						onClick={() => { setActiveView('settings'); if (isMobile) toggleSidebar(); }}
-					/>
+					<SidebarLink icon={<i className="fa-solid fa-house"></i>} text="Dashboard" isOpen={sidebarOpen} isActive={activeView === 'dashboard'} onClick={() => { setActiveView('dashboard'); if (isMobile) toggleSidebar(); }} />
+					<SidebarLink icon={<i className="fa-solid fa-users"></i>} text="Members" isOpen={sidebarOpen} isActive={activeView === 'members'} onClick={() => { setActiveView('members'); if (isMobile) toggleSidebar(); }} />
+					<SidebarLink icon={<i className="fa-solid fa-comments"></i>} text="Chat" isOpen={sidebarOpen} isActive={chatOpen} onClick={() => { chatOpen ? setChatOpen(false) : openChat(); if (isMobile) toggleSidebar(); }} notificationCount={unreadChatCount}/>
+					<SidebarLink icon={<i className="fa-solid fa-border-all"></i>} text="Sudoku" isOpen={sidebarOpen} isActive={activeView === 'sudoku'} onClick={() => { setActiveView('sudoku'); if (isMobile) toggleSidebar(); }}/>
+					<SidebarLink icon={<i className="fa-solid fa-xmarks-lines"></i>} text="Tic-Tac-Toe" isOpen={sidebarOpen} isActive={activeView === 'tictactoe'} onClick={() => { setActiveView('tictactoe'); if (isMobile) toggleSidebar(); }}/>
+					<SidebarLink icon={<i className="fa-solid fa-gears"></i>} text="Settings" isOpen={sidebarOpen} isActive={activeView === 'settings'} onClick={() => { setActiveView('settings'); if (isMobile) toggleSidebar(); }}/>
 				</ul>
 			</div>
 		</aside>

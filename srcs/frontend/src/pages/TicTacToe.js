@@ -11,8 +11,6 @@ const TicTacToe = ({ circleId, showToast }) => {
 	const [currentUser, setCurrentUser] = useState(null);
 
 	const ws = useRef(null);
-
-	// Get current user from local storage
 	useEffect(() => {
 		const userStr = localStorage.getItem('user');
 		if (userStr) {
@@ -64,7 +62,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 	const handleCellClick = (row, col) => {
 		if (!isConnected || winner || isDraw || board[row][col]) return;
 
-		// Check turn
+	
 		if (turn === 'X' && players.X?.id !== currentUser?.id) return;
 		if (turn === 'O' && players.O?.id !== currentUser?.id) return;
 
@@ -114,7 +112,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 
 				<div className="tictactoe-status">
 					<div className={`player-badge ${turn === 'X' ? 'active' : ''}`}>
-						<span className="fw-bold text-danger">X</span>
+						<span className="fw-bold text-danger"><i className="fa-solid fa-x"></i></span>
 						<span>{players.X?.username || 'Waiting...'}</span>
 						{!players.X && (
 							<button className="btn btn-sm btn-outline-light ms-2" onClick={() => joinGame('X')}>
@@ -129,7 +127,7 @@ const TicTacToe = ({ circleId, showToast }) => {
 					</div>
 					<div className="text-muted align-self-center">VS</div>
 					<div className={`player-badge ${turn === 'O' ? 'active' : ''}`}>
-						<span className="fw-bold text-primary">O</span>
+						<span className="fw-bold text-primary"><i className="fa-solid fa-o"></i></span>
 						<span>{players.O?.username || 'Waiting...'}</span>
 						{!players.O && (
 							<button className="btn btn-sm btn-outline-light ms-2" onClick={() => joinGame('O')}>
@@ -149,7 +147,9 @@ const TicTacToe = ({ circleId, showToast }) => {
 						{winner ? (
 							<span>
 								<i className="fa-solid fa-trophy me-2"></i>
-								Winner: <span className={winner === 'X' ? 'text-danger' : 'text-primary'}>{winner}</span>
+								Winner: <span className={winner === 'X' ? 'text-danger' : 'text-primary'}>
+									{winner === 'X' ? <i className="fa-solid fa-x"></i> : <i className="fa-solid fa-o"></i>}
+								</span>
 							</span>
 						) : (
 							<span><i className="fa-solid fa-handshake me-2"></i>Draw!</span>
@@ -175,7 +175,8 @@ const TicTacToe = ({ circleId, showToast }) => {
 								className={`tt-cell ${cellContent.toLowerCase()} ${!isInteractable ? 'disabled' : ''}`}
 								onClick={() => handleCellClick(rIndex, cIndex)}
 							>
-								{cellContent}
+								{cellContent === 'X' && <i className="fa-solid fa-x text-danger"></i>}
+								{cellContent === 'O' && <i className="fa-solid fa-o text-primary"></i>}
 							</div>
 						);
 					})
