@@ -15,6 +15,32 @@ import Toast from '../components/Toast';
 const Dashboard = () => {
 	const navigate = useNavigate();
 
+	const handleLogout = () => {
+		localStorage.removeItem('token');
+		localStorage.removeItem('user');
+		window.location.href = '/';
+	};
+
+	const authFetch = async (url, options = {}) => {
+		const token = localStorage.getItem('token');
+		if (!token) {
+			handleLogout();
+			return null;
+		}
+
+		const headers = {
+			...options.headers,
+			'Authorization': `Token ${token}`
+		};
+
+		const res = await fetch(url, { ...options, headers });
+		if (res.status === 401 || res.status === 403) {
+			handleLogout();
+			return null;
+		}
+		return res;
+	};
+
 	useEffect(() => {
 		const token = localStorage.getItem('token');
 		if (!token) {
@@ -132,11 +158,8 @@ const Dashboard = () => {
 				setSelectedEnv(circle);
 
 				try {
-					const token = localStorage.getItem('token');
-					const res = await fetch(`/api/tasks/${notif.task_id}/`, {
-						headers: { 'Authorization': `Token ${token}` }
-					});
-					if (res.ok) {
+					const res = await authFetch(`/api/tasks/${notif.task_id}/`);
+					if (res && res.ok) {
 						const task = await res.json();
 						setSelectedTask(task);
 						setShowTaskDetail(true);
@@ -144,19 +167,17 @@ const Dashboard = () => {
 				} catch (e) {
 				}
 			}
+			setNotifications(prev => prev.filter(n => n.id !== notif.id));
+			setShowNotifications(false);
 		}
-		setNotifications(prev => prev.filter(n => n.id !== notif.id));
-		setShowNotifications(false);
 	};
 
 	const handleKick = async (circleId, memberId) => {
-		const token = localStorage.getItem('token');
 		try {
-			const res = await fetch(`/api/circles/${circleId}/kick_member/`, {
+			const res = await authFetch(`/api/circles/${circleId}/kick_member/`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Token ${token}`
+					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ member_id: memberId })
 			});
@@ -183,11 +204,9 @@ const Dashboard = () => {
 
 	const executeLeaveCircle = async () => {
 		if (!circleToLeave) return;
-		const token = localStorage.getItem('token');
 		try {
-			const res = await fetch(`/api/circles/${circleToLeave}/leave/`, {
-				method: 'POST',
-				headers: { 'Authorization': `Token ${token}` }
+			const res = await authFetch(`/api/circles/${circleToLeave}/leave/`, {
+				method: 'POST'
 			});
 
 			if (res.ok) {
@@ -215,10 +234,8 @@ const Dashboard = () => {
 				return;
 			}
 			try {
-				const res = await fetch('/api/profile/me/', {
-					headers: { 'Authorization': `Token ${token}` }
-				});
-				if (res.ok) {
+				const res = await authFetch('/api/profile/me/');
+				if (res && res.ok) {
 					const userData = await res.json();
 					setUser(userData);
 					setProfileData({
@@ -230,10 +247,6 @@ const Dashboard = () => {
 						avatarUrl: userData.avatar
 					});
 					localStorage.setItem('user', JSON.stringify(userData));
-				} else if (res.status === 401 || res.status === 403) {
-					localStorage.removeItem('token');
-					localStorage.removeItem('user');
-					navigate('/', { replace: true });
 				}
 			} catch (e) {
 			}
@@ -329,13 +342,9 @@ const Dashboard = () => {
 	}, []);
 
 	const fetchCircles = async () => {
-		const token = localStorage.getItem('token');
-		if (!token) return;
 		try {
-			const res = await fetch('/api/circles/my_circles/', {
-				headers: { 'Authorization': `Token ${token}` }
-			});
-			if (res.ok) {
+			const res = await authFetch('/api/circles/my_circles/');
+			if (res && res.ok) {
 				const data = await res.json();
 				setMyCircles(data);
 				if (data.length > 0 && !selectedEnv) setSelectedEnv(data[0]);
@@ -344,13 +353,9 @@ const Dashboard = () => {
 	};
 
 	const fetchTasks = async (circleId) => {
-		const token = localStorage.getItem('token');
-		if (!token) return;
 		try {
-			const res = await fetch(`/api/tasks/?circle_id=${circleId}`, {
-				headers: { 'Authorization': `Token ${token}` }
-			});
-			if (res.ok) {
+			const res = await authFetch(`/api/tasks/?circle_id=${circleId}`);
+			if (res && res.ok) {
 				const data = await res.json();
 				setTasks(data);
 				if (selectedTask) {
@@ -363,13 +368,9 @@ const Dashboard = () => {
 	};
 
 	const fetchMessages = async (circleId) => {
-		const token = localStorage.getItem('token');
-		if (!token) return;
 		try {
-			const res = await fetch(`/api/messages/?circle_id=${circleId}`, {
-				headers: { 'Authorization': `Token ${token}` }
-			});
-			if (res.ok) {
+			const res = await authFetch(`/api/messages/?circle_id=${circleId}`);
+			if (res && res.ok) {
 				const data = await res.json();
 				setMessages(data);
 				scrollToBottom();
@@ -378,13 +379,9 @@ const Dashboard = () => {
 	};
 
 	const fetchDMMessages = async (targetId) => {
-		const token = localStorage.getItem('token');
-		if (!token) return;
 		try {
-			const res = await fetch(`/api/direct-messages/?target_id=${targetId}`, {
-				headers: { 'Authorization': `Token ${token}` }
-			});
-			if (res.ok) {
+			const res = await authFetch(`/api/direct-messages/?target_id=${targetId}`);
+			if (res && res.ok) {
 				const data = await res.json();
 				setMessages(data);
 				scrollToBottom();
@@ -522,13 +519,11 @@ const Dashboard = () => {
 		e.preventDefault();
 		if (!selectedEnv || !editingCircleName) return;
 
-		const token = localStorage.getItem('token');
 		try {
-			const res = await fetch(`/api/circles/${selectedEnv.id}/`, {
+			const res = await authFetch(`/api/circles/${selectedEnv.id}/`, {
 				method: 'PATCH',
 				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Token ${token}`
+					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
 					name: editingCircleName,
@@ -550,7 +545,6 @@ const Dashboard = () => {
 
 	const handleUpdateProfile = async (e) => {
 		e.preventDefault();
-		const token = localStorage.getItem('token');
 		const formData = new FormData();
 		formData.append('username', profileData.username);
 		formData.append('email', profileData.email);
@@ -558,13 +552,9 @@ const Dashboard = () => {
 		if (profileData.password) formData.append('password', profileData.password);
 		if (profileData.avatar) formData.append('avatar', profileData.avatar);
 		if (profileData.removeAvatar) formData.append('remove_avatar', 'true');
-
 		try {
-			const res = await fetch('/api/profile/me/', {
+			const res = await authFetch('/api/profile/me/', {
 				method: 'PUT',
-				headers: {
-					'Authorization': `Token ${token}`
-				},
 				body: formData
 			});
 
@@ -594,23 +584,15 @@ const Dashboard = () => {
 	};
 
 	const deleteTask = async (taskId) => {
-		const token = localStorage.getItem('token');
 		try {
-			const res = await fetch(`/api/tasks/${taskId}/`, {
-				method: 'DELETE',
-				headers: { 'Authorization': `Token ${token}` }
+			const res = await authFetch(`/api/tasks/${taskId}/`, {
+				method: 'DELETE'
 			});
 			if (res.ok) {
 				setShowTaskDetail(false);
 				fetchTasks(selectedEnv.id);
 			}
 		} catch (e) { console.error(e); }
-	};
-
-	const handleLogout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('user');
-		window.location.href = '/';
 	};
 
 	const openChat = () => { setChatOpen(true); };

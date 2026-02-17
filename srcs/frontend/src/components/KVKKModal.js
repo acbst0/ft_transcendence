@@ -11,7 +11,7 @@ const KVKKModal = ({ isOpen, onClose }) => {
 				</p>
 
 				<h3>2. Purpose of Processing Personal Data</h3>
-				<p>
+				<div style={{ marginBottom: '1rem' }}>
 					Your collected personal data will be processed for the following purposes:
 					<ul>
 						<li>To benefit from the services offered by our platform,</li>
@@ -20,7 +20,7 @@ const KVKKModal = ({ isOpen, onClose }) => {
 						<li>To fulfill legal obligations,</li>
 						<li>To ensure security and prevent fraudulent transactions.</li>
 					</ul>
-				</p>
+				</div>
 
 				<h3>3. To Whom and for What Purpose the Processed Personal Data May Be Transferred</h3>
 				<p>

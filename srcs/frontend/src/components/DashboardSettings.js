@@ -44,19 +44,19 @@ const DashboardSettings = ({
 
 								<div className="mb-2">
 									<label className="form-label text-muted small">Username</label>
-									<input className="form-control settings-input" type="text" value={profileData.username} onChange={e => setProfileData({ ...profileData, username: e.target.value })} />
+									<input className="form-control settings-input" type="text" value={profileData.username || ''} onChange={e => setProfileData({ ...profileData, username: e.target.value })} />
 								</div>
 								<div className="mb-2">
 									<label className="form-label text-muted small">Bio</label>
-									<textarea className="form-control settings-input" rows="3" maxLength="200" value={profileData.bio} onChange={e => setProfileData({ ...profileData, bio: e.target.value })} placeholder="Tell us about yourself..." />
+									<textarea className="form-control settings-input" rows="3" maxLength="200" value={profileData.bio || ''} onChange={e => setProfileData({ ...profileData, bio: e.target.value })} placeholder="Tell us about yourself..." />
 								</div>
 								<div className="mb-2">
 									<label className="form-label text-muted small">Email</label>
-									<input className="form-control settings-input" type="email" value={profileData.email} onChange={e => setProfileData({ ...profileData, email: e.target.value })} />
+									<input className="form-control settings-input" type="email" value={profileData.email || ''} onChange={e => setProfileData({ ...profileData, email: e.target.value })} />
 								</div>
 								<div className="mb-2">
 									<label className="form-label text-muted small">New Password (Optional)</label>
-									<input className="form-control settings-input" type="password" value={profileData.password} onChange={e => setProfileData({ ...profileData, password: e.target.value })} placeholder="Leave blank to keep current" />
+									<input className="form-control settings-input" type="password" value={profileData.password || ''} onChange={e => setProfileData({ ...profileData, password: e.target.value })} placeholder="Leave blank to keep current" />
 								</div>
 								<button type="submit" className="btn btn-primary-green w-100 mt-2">Save Changes</button>
 
@@ -87,7 +87,7 @@ const DashboardSettings = ({
 										<input
 											className="form-control settings-input"
 											type="text"
-											value={editingCircleName}
+											value={editingCircleName || ''}
 											onChange={e => setEditingCircleName(e.target.value)}
 										/>
 									</div>
@@ -95,7 +95,7 @@ const DashboardSettings = ({
 										<label className="form-label text-muted small">Description</label>
 										<textarea
 											className="form-control textarea-resize-v settings-input"
-											value={editingDescription}
+											value={editingDescription || ''}
 											onChange={e => setEditingDescription(e.target.value)}
 											rows={3}
 										/>
